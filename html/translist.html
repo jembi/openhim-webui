@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenHIX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+
+<!-- Le styles -->
+<link href="../css/bootstrap.css" rel="stylesheet">
+<style>
+body {
+	padding-top: 60px;
+	/* 60px to make the container go all the way to the bottom of the topbar */
+}
+</style>
+
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+<!-- Le fav and touch icons -->
+<link rel="shortcut icon" href="ico/favicon.ico">
+<link rel="apple-touch-icon-precomposed" sizes="114x114"
+	href="ico/apple-touch-icon-114-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72"
+	href="ico/apple-touch-icon-72-precomposed.png">
+<link rel="apple-touch-icon-precomposed"
+	href="ico/apple-touch-icon-57-precomposed.png">
+</head>
+
+<body>
+
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse"
+					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+					class="icon-bar"></span> <span class="icon-bar"></span>
+				</a> <a class="brand" href="#">OpenHIX - Error Management Console</a>
+				<div class="nav-collapse">
+					<ul class="nav">
+						<li class="active"><a href="#">Transaction Log</a></li>
+						<li><a href="../monitor">Monitor</a></li>
+					</ul>
+				</div>
+				<!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+
+		<h1>Transaction log</h1>
+
+		<br /> <br />
+
+		<form class="well form-inline">
+			<label class="checkbox"> <input type="checkbox" /> Show only
+				flagged
+			</label> <label class="checkbox"> <input type="checkbox" /> Show only
+				un-reviewed
+			</label> <label> Status: <select>
+					<option>Don't Filter</option>
+					<option>Show Processing</option>
+					<option>Show Completed</option>
+			</select>
+			</label> <label> Endpoint: <select>
+					<option>Don't Filter</option>
+					<option>Save Patient Encounter</option>
+					<option>Query Prev encounters</option>
+			</select>
+			</label> <a class="btn" href="."><i class="icon-refresh"></i></a>
+		</form>
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>HTTP Method</th>
+					<th>Path</th>
+					<th>Request Params</th>
+					<th>Status</th>
+					<th>Recieved Timestamp</th>
+					<th>Reviewed</th>
+					<th>Flagged</th>
+				</tr>
+			</thead>
+			<tbody>
+				% for row in rows:
+					<tr onclick="location.href='../transview?id=${row[0]}';">
+						<td>${row[0]}</td>
+						<td>${row[5]}</td>
+						<td>${row[2]}</td>
+						<td>${row[3]}</td>
+						<td>
+							% if row[13] == 1:
+								Processing
+							% elif row[13] == 2:
+								Completed
+							% else:
+								Error
+							% endif
+						</td>
+						<td>${row[9]}</td>
+						<td></td>
+						<td></td>
+					</tr>
+				% endfor
+			</tbody>
+		</table>
+
+		<ul class="pager">
+			<li class="previous"><a href="#">&larr; Newer</a></li>
+			<li class="next"><a href="#">Older &rarr;</a></li>
+		</ul>
+
+	</div>
+	<!-- /container -->
+
+</body>
+</html>
