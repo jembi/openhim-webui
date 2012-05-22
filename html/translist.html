@@ -57,21 +57,87 @@ body {
 
 		<br /> <br />
 
-		<form class="well form-inline">
-			<label class="checkbox"> <input type="checkbox" /> Show only
-				flagged
-			</label> <label class="checkbox"> <input type="checkbox" /> Show only
-				un-reviewed
-			</label> <label> Status: <select>
-					<option>Don't Filter</option>
-					<option>Show Processing</option>
-					<option>Show Completed</option>
-			</select>
-			</label> <label> Endpoint: <select>
-					<option>Don't Filter</option>
-					<option>Save Patient Encounter</option>
-					<option>Query Prev encounters</option>
-			</select>
+		<form name="filter_form" class="well form-inline">
+			<label class="checkbox">
+				<input type="checkbox" /> Show only flagged
+			</label>
+			<label class="checkbox">
+				<input type="checkbox" /> Show only un-reviewed
+			</label> 
+			<label> Status: 
+				<select name="status" onchange="document.filter_form.submit();">
+					<option>All</option>
+					<option
+						% if status == '1':
+							selected="selected"
+						% endif
+						value="1">Show Processing</option>
+					<option
+						% if status == '2':
+							selected="selected"
+						% endif					
+						value="2">Show Completed</option>
+					<option
+						% if status == '3':
+							selected="selected"
+						% endif					
+						value="3">Show Error'd</option>
+				</select>
+			</label>
+			<label> Endpoint: 
+				<select name="endpoint" onchange="document.filter_form.submit();">
+					<option>All</option>
+					<option
+						% if endpoint == 'savePatientEncounter':
+							selected="selected"
+						% endif
+						value="savePatientEncounter">Save Patient Encounter</option>
+					<option
+						% if endpoint == 'queryForPreviousPatientEncounters':
+							selected="selected"
+						% endif
+						value="queryForPreviousPatientEncounters">Query for previous patient encounters</option>
+					<option
+						% if endpoint == 'getEncounter':
+							selected="selected"
+						% endif
+						value="getEncounter">Get encounter</option>
+					<option
+						% if endpoint == 'registerNewClient':
+							selected="selected"
+						% endif
+						value="registerNewClient">Register new client</option>
+					<option
+						% if endpoint == 'queryForClient':
+							selected="selected"
+						% endif
+						value="queryForClient">Query for clients</option>
+					<option
+						% if endpoint == 'getClient':
+							selected="selected"
+						% endif
+						value="getClient">Get client</option>
+					<option
+						% if endpoint == 'updateClientRecord':
+							selected="selected"
+						% endif
+						value="updateClientRecord">Update client record</option>
+					<option
+						% if endpoint == 'queryForHCFacilities':
+							selected="selected"
+						% endif
+						value="queryForHCFacilities">Query for HC Facilities</option>
+					<option
+						% if endpoint == 'getHCFacility':
+							selected="selected"
+						% endif
+						value="getHCFacility">Get HC Facility</option>
+					<option
+						% if endpoint == 'postAlert':
+							selected="selected"
+						% endif
+						value="postAlert">Post Alert</option>
+				</select>
 			</label> <a class="btn" href="."><i class="icon-refresh"></i></a>
 		</form>
 		<table class="table table-bordered">

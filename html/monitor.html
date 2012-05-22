@@ -71,13 +71,103 @@ body {
 			</thead>
 			<tbody>
 				<tr>
-					<td>TOTAL</td>
-					<td>${totalStats["avg"]}s</td>
-					<td>${totalStats["max"]}s</td>
-					<td>${totalStats["min"]}s</td>
-					<td>${totalStats["processing"]}</td>
-					<td>${totalStats["completed"]}</td>
-					<td>${totalStats["error"]}</td>
+					<td>Save Patient Encounter</td>
+					<td>${saveEncStats["avg"]}s</td>
+					<td>${saveEncStats["max"]}s</td>
+					<td>${saveEncStats["min"]}s</td>
+					<td>${saveEncStats["processing"]}</td>
+					<td>${saveEncStats["completed"]}</td>
+					<td>${saveEncStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Query for previous patient encounters</td>
+					<td>${queryEncStats["avg"]}s</td>
+					<td>${queryEncStats["max"]}s</td>
+					<td>${queryEncStats["min"]}s</td>
+					<td>${queryEncStats["processing"]}</td>
+					<td>${queryEncStats["completed"]}</td>
+					<td>${queryEncStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Get encounter</td>
+					<td>${getEncStats["avg"]}s</td>
+					<td>${getEncStats["max"]}s</td>
+					<td>${getEncStats["min"]}s</td>
+					<td>${getEncStats["processing"]}</td>
+					<td>${getEncStats["completed"]}</td>
+					<td>${getEncStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Register new client</td>
+					<td>${regClientStats["avg"]}s</td>
+					<td>${regClientStats["max"]}s</td>
+					<td>${regClientStats["min"]}s</td>
+					<td>${regClientStats["processing"]}</td>
+					<td>${regClientStats["completed"]}</td>
+					<td>${regClientStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Query for clients</td>
+					<td>${queryClientStats["avg"]}s</td>
+					<td>${queryClientStats["max"]}s</td>
+					<td>${queryClientStats["min"]}s</td>
+					<td>${queryClientStats["processing"]}</td>
+					<td>${queryClientStats["completed"]}</td>
+					<td>${queryClientStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Get client</td>
+					<td>${getClientStats["avg"]}s</td>
+					<td>${getClientStats["max"]}s</td>
+					<td>${getClientStats["min"]}s</td>
+					<td>${getClientStats["processing"]}</td>
+					<td>${getClientStats["completed"]}</td>
+					<td>${getClientStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Update client record</td>
+					<td>${updateClientStats["avg"]}s</td>
+					<td>${updateClientStats["max"]}s</td>
+					<td>${updateClientStats["min"]}s</td>
+					<td>${updateClientStats["processing"]}</td>
+					<td>${updateClientStats["completed"]}</td>
+					<td>${updateClientStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Query for HC Facilities</td>
+					<td>${queryFacStats["avg"]}s</td>
+					<td>${queryFacStats["max"]}s</td>
+					<td>${queryFacStats["min"]}s</td>
+					<td>${queryFacStats["processing"]}</td>
+					<td>${queryFacStats["completed"]}</td>
+					<td>${queryFacStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Get HC Facility</td>
+					<td>${getFacStats["avg"]}s</td>
+					<td>${getFacStats["max"]}s</td>
+					<td>${getFacStats["min"]}s</td>
+					<td>${getFacStats["processing"]}</td>
+					<td>${getFacStats["completed"]}</td>
+					<td>${getFacStats["error"]}</td>
+				</tr>
+				<tr>
+					<td>Post Alert</td>
+					<td>${alertStats["avg"]}s</td>
+					<td>${alertStats["max"]}s</td>
+					<td>${alertStats["min"]}s</td>
+					<td>${alertStats["processing"]}</td>
+					<td>${alertStats["completed"]}</td>
+					<td>${alertStats["error"]}</td>
+				</tr>
+				<tr>
+					<td><b>TOTAL</b></td>
+					<td><b>${totalStats["avg"]}s</b></td>
+					<td><b>${totalStats["max"]}s</b></td>
+					<td><b>${totalStats["min"]}s</b></td>
+					<td><b>${totalStats["processing"]}</b></td>
+					<td><b>${totalStats["completed"]}</b></td>
+					<td><b>${totalStats["error"]}</b></td>
 				</tr>
 			</tbody>
 		</table>
