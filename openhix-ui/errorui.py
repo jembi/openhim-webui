@@ -8,6 +8,7 @@ import os.path
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
+from auth import AuthController, require, member_of, name_is
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -26,6 +27,7 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 class TransList(object):
     @cherrypy.expose
+    @require()
     def index(self, status=None, endpoint=None):
         sql = "SELECT * FROM `transaction_log`"
         
@@ -74,8 +76,9 @@ class TransList(object):
     
 class TransView():
     @cherrypy.expose
+    @require()
     def index(self, id):
-        cursor = conn.cursor ()
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()
@@ -131,6 +134,7 @@ class Monitor():
         return stats
     
     @cherrypy.expose
+    @require()
     def index(self):
         totalStats = self.calculateStats();
         saveEncStats = self.calculateStats(SAVE_ENC_WHERE_CLAUSE);
@@ -150,17 +154,23 @@ class Monitor():
 class Root(object):
     translist = TransList()
     transview = TransView()
-    monitor = Monitor();
+    monitor = Monitor()
+    auth = AuthController()
+    auth.login_form_template = lookup.get_template('login.html')
     
     @cherrypy.expose
     def index(self):
-        tmpl = lookup.get_template('login.html')
-        return tmpl.render()
+        raise cherrypy.HTTPRedirect("auth/login")
     
 def main():
+    """This is the main function that can be called to start the
+    CherryPy server and launch the web app"""
+    
     # Config server
     cherrypy.config.update({'server.socket_host': '127.0.0.1',
                             'server.socket_port': 8081,
+                            'tools.sessions.on': True,
+                            'tools.auth.on': True
                           })
     
     # Setup static resources
