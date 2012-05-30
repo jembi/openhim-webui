@@ -189,11 +189,22 @@ body {
 		</table>
 
 		<ul class="pager">
+			<%
+				request_params = []
+				if status is not None:
+					request_params.append("status=" + status)
+				if endpoint is not None:
+					request_params.append("endpoint=" + endpoint)
+				request_params = "&".join(request_params)
+				request_params = "?" + request_params
+				if len(request_params) > 1:
+					request_params += "&" 
+			%>
 			% if page > 1:
-			<li class="previous"><a href="?page=${int(page) - 1}">&larr; Newer</a></li>
+			<li class="previous"><a href="${request_params}page=${page - 1}">&larr; Newer</a></li>
 			% endif
 			% if page is not int(max_page):
-			<li class="next"><a href="?page=${int(page) + 1}">Older &rarr;</a></li>
+			<li class="next"><a href="${request_params}page=${page + 1}">Older &rarr;</a></li>
 			% endif
 		</ul>
 

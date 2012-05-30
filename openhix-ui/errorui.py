@@ -74,7 +74,7 @@ class TransList(object):
             
         sql += " ORDER BY recieved_timestamp DESC"
         
-        sql += " LIMIT " + str((int(page) - 1) * self.page_size) + ", " + str(self.page_size)
+        sql += " LIMIT " + str((page - 1) * self.page_size) + ", " + str(self.page_size)
             
         sql += ";"
         
