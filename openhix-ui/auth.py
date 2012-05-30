@@ -28,7 +28,7 @@ def check_credentials(username, password):
     cursor.close()
     
     if row is None:
-        return u"Unknown user"
+        return u"The username or password you entered is incorrect."
     
     username = row[1]
     hash = row[2]
@@ -37,7 +37,7 @@ def check_credentials(username, password):
     if hash == hashlib.md5(salt + username + password).hexdigest():
         return None
     else:
-        return u"Incorrect password"
+        return u"The username or password you entered is incorrect."
     
     # An example implementation which uses an ORM could be:
     # u = User.get(username)
@@ -128,8 +128,8 @@ class AuthController(object):
     def on_logout(self, username):
         """Called on logout"""
     
-    def get_loginform(self, username, msg="Enter login information", from_page="/"):
-        return self.login_form_template.render()
+    def get_loginform(self, username, error_msg=None, from_page="/"):
+        return self.login_form_template.render(error_msg=error_msg, username=cherrypy.session.get(SESSION_KEY))
     
     @cherrypy.expose
     def login(self, username=None, password=None, from_page=None):

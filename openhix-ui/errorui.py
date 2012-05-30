@@ -8,7 +8,7 @@ import os.path
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
-from auth import AuthController, require, member_of, name_is
+from auth import AuthController, require, member_of, name_is, SESSION_KEY
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -24,6 +24,9 @@ UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/${pat-ID}' AND http
 QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"
 GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
 ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
+
+def getUsername():
+    return cherrypy.session.get(SESSION_KEY, None)
 
 class TransList(object):
     @cherrypy.expose
@@ -72,7 +75,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername())
     
 class TransView():
     @cherrypy.expose
@@ -84,7 +87,7 @@ class TransView():
         cursor.close()
         
         tmpl = lookup.get_template('transview.html')
-        return tmpl.render(row=row) 
+        return tmpl.render(row=row, username=getUsername()) 
     
 class Monitor():
     def calculateStats(self, extraWhereClause=""):
@@ -149,7 +152,7 @@ class Monitor():
         alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
         
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats) 
+        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, username=getUsername()) 
     
 class Root(object):
     translist = TransList()

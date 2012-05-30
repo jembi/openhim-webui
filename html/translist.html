@@ -9,6 +9,8 @@
 
 <!-- Le styles -->
 <link href="../css/bootstrap.css" rel="stylesheet">
+<script src="../js/jquery.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
 <style>
 body {
 	padding-top: 60px;
@@ -39,17 +41,25 @@ body {
 				<a class="btn btn-navbar" data-toggle="collapse"
 					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
 					class="icon-bar"></span> <span class="icon-bar"></span>
-				</a> <a class="brand" href="#">OpenHIX - Error Management Console</a>
-				<div class="nav-collapse">
-					<ul class="nav">
-						<li class="active"><a href="#">Transaction Log</a></li>
-						<li><a href="../monitor">Monitor</a></li>
-					</ul>
-					<ul class="nav pull-right">
-						<li class="pull-right"><a href="../auth/logout">Logout</a></li>
-					</ul>
-				</div>
-				<!--/.nav-collapse -->
+				</a> <a class="brand" href="#">HIM - Error Management Console</a>
+				<ul class="nav">
+					<li class="active"><a href="#">Transaction Log</a></li>
+					<li><a href="../monitor">Monitor</a></li>
+				</ul>
+				<ul class="nav pull-right">
+				  <li class="dropdown">
+				    <a href="#"
+				          class="dropdown-toggle"
+				          data-toggle="dropdown">
+				          <i class="icon-user icon-white"></i>
+				          ${username}
+				          <b class="caret"></b>
+				    </a>
+				    <ul class="dropdown-menu">
+				      <li><a href="../auth/logout">Logout</a></li>
+				    </ul>
+				  </li>
+				</ul>
 			</div>
 		</div>
 	</div>
