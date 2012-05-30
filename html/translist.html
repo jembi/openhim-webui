@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>OpenHIX</title>
+<title>HIM - Error Management Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="">
 <meta name="author" content="">
@@ -43,7 +43,7 @@ body {
 					class="icon-bar"></span> <span class="icon-bar"></span>
 				</a> <a class="brand" href="#">HIM - Error Management Console</a>
 				<ul class="nav">
-					<li class="active"><a href="#">Transaction Log</a></li>
+					<li class="active"><a href="../translist">Transaction Log</a></li>
 					<li><a href="../monitor">Monitor</a></li>
 				</ul>
 				<ul class="nav pull-right">
@@ -156,7 +156,6 @@ body {
 		<table class="table table-bordered">
 			<thead>
 				<tr>
-					<th>ID</th>
 					<th>HTTP Method</th>
 					<th>Path</th>
 					<th>Request Params</th>
@@ -169,9 +168,8 @@ body {
 			<tbody>
 				% for row in rows:
 					<tr onclick="location.href='../transview?id=${row[0]}';">
-						<td>${row[0]}</td>
-						<td>${row[5]}</td>
-						<td>${row[2]}</td>
+						<td><a href="#">${row[5]}</a></td>
+						<td><a href="#">${row[2]}</a></td>
 						<td>${row[3]}</td>
 						<td>
 							% if row[13] == 1:
@@ -191,8 +189,12 @@ body {
 		</table>
 
 		<ul class="pager">
-			<li class="previous"><a href="#">&larr; Newer</a></li>
-			<li class="next"><a href="#">Older &rarr;</a></li>
+			% if page > 1:
+			<li class="previous"><a href="?page=${int(page) - 1}">&larr; Newer</a></li>
+			% endif
+			% if page is not int(max_page):
+			<li class="next"><a href="?page=${int(page) + 1}">Older &rarr;</a></li>
+			% endif
 		</ul>
 
 	</div>

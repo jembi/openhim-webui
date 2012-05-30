@@ -29,9 +29,14 @@ def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
 
 class TransList(object):
+    
+    page_size = 20;
+    
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None):
+    def index(self, status=None, endpoint=None, page="1"):
+        page = int(page)
+        
         sql = "SELECT * FROM `transaction_log`"
         
         whereClauses = [];
@@ -67,15 +72,23 @@ class TransList(object):
             sql += " WHERE "
             sql += " AND ".join(whereClauses)
             
+        sql += " ORDER BY recieved_timestamp DESC"
+        
+        sql += " LIMIT " + str((int(page) - 1) * self.page_size) + ", " + str(self.page_size)
+            
         sql += ";"
         
         cursor = conn.cursor ()
         cursor.execute(sql)
         rows = cursor.fetchall()
+        
+        cursor.execute("SELECT COUNT(*) FROM `transaction_log`;")
+        row = cursor.fetchone()
+        max_page =  (row[0] / self.page_size) + 1
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername())
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page)
     
 class TransView():
     @cherrypy.expose

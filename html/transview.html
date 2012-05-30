@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>OpenHIX</title>
+<title>HIM - Error Management Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="">
 <meta name="author" content="">
@@ -101,18 +101,18 @@ body {
 						<i class="icon-arrow-right"></i>
 					</button>
 				</div>
-				<div class="span6">
-					<table width="50%">
+				<div>
+					<table class="span12">
 						<tr>
-							<td>ID</td>
+							<td width="150px">ID</td>
 							<td>${row[0]}</td>
 						</tr>
 						<tr>
-							<td>UUID</td>
+							<td width="150px">HIM UUID</td>
 							<td>${row[1]}</td>
 						</tr>
 						<tr>
-							<td>Status</td>
+							<td width="150px">Status</td>
 							<td>
 								% if row[13] == 1:
 									Processing
@@ -137,25 +137,25 @@ body {
 			<div class="row">
 				<div class="span12">
 					<h2>Request</h2>
-					<table width="50%">
+					<table>
 						<tr>
-							<td>Path</td>
+							<td width="150px">Path</td>
 							<td>${row[2]}</td>
 						</tr>
 						<tr>
-							<td>Request Parameters</td>
+							<td width="150px">Request Parameters</td>
 							<td>${row[3]}</td>
 						</tr>
 						<tr>
-							<td>HTTP Method</td>
+							<td width="150px">HTTP Method</td>
 							<td>${row[5]}</td>
 						</tr>
 						<tr>
-							<td>Recieved Timestamp</td>
+							<td width="150px">Recieved Timestamp</td>
 							<td>${row[8]}</td>
 						</tr>
 						<tr>
-							<td>Request Body:</td>
+							<td width="150px">Request Body:</td>
 						</tr>
 					</table>
 					<textarea rows="10" style="width: 95%" readonly="readonly">${row[4]}</textarea>
@@ -167,13 +167,13 @@ body {
 			<div class="row">
 				<div class="span12">
 					<h2>Response</h2>
-					<table width="100%">
+					<table>
 						<tr>
-							<td>Response status</td>
+							<td width="150px">Response status</td>
 							<td>${row[6]}</td>
 						</tr>
 						<tr>
-							<td>Recieved timestamp</td>
+							<td width="150px">Recieved timestamp</td>
 							<td>${row[8]}</td>
 						</tr>
 						<tr>
@@ -189,13 +189,13 @@ body {
 			<div class="row">
 				<div class="span12">
 					<h2>Errors</h2>
-					<table width="100%">
+					<table>
 						<tr>
-							<td>Description</td>
+							<td width="150px">Description</td>
 							<td>${row[11]}</td>
 						</tr>
 						<tr>
-							<td>Stacktrace:</td>
+							<td width="150px">Stacktrace:</td>
 						</tr>
 					</table>
 					<textarea rows="10" style="width: 95%" readonly="readonly">${row[12]}</textarea>
