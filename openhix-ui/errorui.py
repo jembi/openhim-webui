@@ -38,6 +38,7 @@ class TransList(object):
         page = int(page)
         
         sql = "SELECT * FROM `transaction_log`"
+        countSql = "SELECT COUNT(*) FROM `transaction_log`"
         
         whereClauses = [];
         if status == '1':
@@ -71,18 +72,21 @@ class TransList(object):
         if len(whereClauses) > 0:
             sql += " WHERE "
             sql += " AND ".join(whereClauses)
+            countSql += " WHERE "
+            countSql += " AND ".join(whereClauses)
             
         sql += " ORDER BY recieved_timestamp DESC"
         
         sql += " LIMIT " + str((page - 1) * self.page_size) + ", " + str(self.page_size)
             
         sql += ";"
+        countSql += ";"
         
         cursor = conn.cursor ()
         cursor.execute(sql)
         rows = cursor.fetchall()
         
-        cursor.execute("SELECT COUNT(*) FROM `transaction_log`;")
+        cursor.execute(countSql)
         row = cursor.fetchone()
         max_page =  (row[0] / self.page_size) + 1
         cursor.close()
