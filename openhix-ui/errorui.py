@@ -12,7 +12,6 @@ from auth import AuthController, require, member_of, name_is, SESSION_KEY
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
-conn = MySQLdb.connect(host="localhost", user="root", passwd="", db="interoperability_layer")
 
 SAVE_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='POST'"
 QUERY_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"
@@ -25,6 +24,11 @@ QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GE
 GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
 ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
+dbhost = "localhost"
+dbuser = "root"
+dbpasswd = "Jembi#123"
+dbname = "interoperability_layer" 
+
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
 
@@ -35,6 +39,7 @@ class TransList(object):
     @cherrypy.expose
     @require()
     def index(self, status=None, endpoint=None, page="1"):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
         sql = "SELECT * FROM `transaction_log`"
@@ -98,6 +103,7 @@ class TransView():
     @cherrypy.expose
     @require()
     def index(self, id):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
@@ -108,6 +114,7 @@ class TransView():
     
 class Monitor():
     def calculateStats(self, extraWhereClause=""):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor ()
         stats = {}
         
@@ -175,8 +182,7 @@ class Root(object):
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
-    auth = AuthController()
-    auth.login_form_template = lookup.get_template('login.html')
+    auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
     
     @cherrypy.expose
     def index(self):

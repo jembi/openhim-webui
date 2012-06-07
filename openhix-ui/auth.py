@@ -14,14 +14,13 @@ import cherrypy
 import MySQLdb
 import hashlib
 
-conn = MySQLdb.connect(host="localhost", user="root", passwd="", db="interoperability_layer")
-
 SESSION_KEY = '_cp_username'
 
-def check_credentials(username, password):
+def check_credentials(username, password, dbhost, dbuser, dbpasswd, dbname):
     """Verifies credentials for username and password.
     Returns None on success or a string describing the error on failure"""
     # Adapt to your needs
+    conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM `users` WHERE username = '" + username + "';")
     row = cursor.fetchone()
@@ -120,7 +119,12 @@ def all_of(*conditions):
 
 class AuthController(object):
     
-    login_form_template = None
+    def __init__(self, login_form_template, dbhost, dbuser, dbpasswd, dbname):
+        self.login_form_template = login_form_template
+        self.dbhost = dbhost
+        self.dbuser = dbuser
+        self.dbpasswd = dbpasswd
+        self.dbname = dbname 
     
     def on_login(self, username):
         """Called on successful login"""
@@ -136,7 +140,7 @@ class AuthController(object):
         if username is None or password is None:
             return self.get_loginform("", from_page=from_page)
         
-        error_msg = check_credentials(username, password)
+        error_msg = check_credentials(username, password, self.dbhost, self.dbuser, self.dbpasswd, self.dbname)
         if error_msg:
             return self.get_loginform(username, error_msg, from_page)
         else:
