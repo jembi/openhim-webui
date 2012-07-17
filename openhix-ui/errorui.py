@@ -26,7 +26,7 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 dbhost = "localhost"
 dbuser = "root"
-dbpasswd = "Jembi#123"
+dbpasswd = ""
 dbname = "interoperability_layer" 
 
 def getUsername():
