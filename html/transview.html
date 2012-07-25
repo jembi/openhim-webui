@@ -70,7 +70,7 @@ body {
 
 		<div>
 			<h3>
-				<a  style="line-height: 2em" href="javascript:history.go(-1)">
+				<a  style="line-height: 2em" href="../translist">
 					<span style="vertical-align: middle"><i class="icon-chevron-left" style="vertical-align: middle"></i>Back</span>
 				</a>
 			</h3>
@@ -80,26 +80,50 @@ body {
 
 			<div class="row">
 				<div class="span3 offset8">
-					<button class="btn" title="Edit and re-run transaction" disabled="disabled">
-						<!--re-run -->
-						<i class="icon-repeat"></i>
-					</button>
-					<button class="btn" title="Mark as reviewed" disabled="disabled">
-						<!--Mark as Reviewed -->
-						<i class="icon-ok"></i>
-					</button>
-					<button class="btn" title="Flag Transaction" disabled="disabled">
-						<!--Flag -->
-						<i class="icon-flag"></i>
-					</button>
-					<button class="btn" title="Previous Transaction" disabled="disabled">
-						<!-- &larr;Prev-->
-						<i class="icon-arrow-left"></i>
-					</button>
-					<button class="btn" title="Next Transaction" disabled="disabled">
-						<!--Next &rarr;-->
-						<i class="icon-arrow-right"></i>
-					</button>
+					<form name="flag_review" method="POST">
+						<button class="btn" title="Edit and re-run transaction" disabled="disabled">
+							<i class="icon-repeat"></i>
+						</button>
+						<button 
+							%if row[15] == 1:
+							class="btn active" 
+							%else:
+							class="btn"
+							%endif
+							name="click" title="Mark Transaction as Reviewed" value="reviewed" data-toggle="button">
+								<i class="icon-ok"></i>
+						</button>
+						<button 
+							%if row[14] == 1:
+							class="btn active" 
+							%else:
+							class="btn"
+							%endif
+							name="click" title="Flag Transaction" value="flagged" data-toggle="button">
+								<i class="icon-flag"></i>
+						</button>
+						%if row[0] > 1:
+						<a class="btn" title="Previous Transaction" href="../transview?id=${row[0]-1}">
+							<!-- &larr;Prev-->
+							<i class="icon-arrow-left"></i>
+						</a>
+						%else:
+						<button class="btn" title="Previous Transaction" disabled="disabled">
+							<i class="icon-arrow-left"></i>
+						</button>
+						%endif
+						%if row[0] == max[0]:
+						<button class="btn" title="Next Transaction" disabled="disabled">
+							<i class="icon-arrow-right"></i>
+						</button>
+						%else:
+						<a class="btn" title="Next Transaction" href="../transview?id=${row[0]+1}">
+							<!--Next &rarr;-->
+							<i class="icon-arrow-right"></i>
+						</a>
+						%endif
+						
+					</form>
 				</div>
 				<div>
 					<table class="span12">

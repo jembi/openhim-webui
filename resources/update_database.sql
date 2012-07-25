@@ -30,3 +30,5 @@ insert into users_roles values ('1', '1');
 insert into users_roles values ('1', '2');
 insert into users_roles values ('2', '2');
 
+ALTER TABLE transaction_log ADD flagged BOOLEAN;
+ALTER TABLE transaction_log ADD reviewed BOOLEAN;

@@ -28,7 +28,7 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 dbhost = "localhost"
 dbuser = "root"
-dbpasswd = "D3vl0cal"
+dbpasswd = "Jembi1"
 dbname = "interoperability_layer" 
 
 monitoring_num_days = 7
@@ -43,7 +43,7 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
@@ -65,6 +65,11 @@ class TransList(object):
             whereClauses.append("status=2")
         if status == '3':
             whereClauses.append("status=3")
+            
+        if flagged == 'on':
+            whereClauses.append("flagged=1")
+        if unreviewed == 'on':
+            whereClauses.append("(reviewed=0 OR reviewed IS NULL)")
             
         if endpoint == 'savePatientEncounter':
             whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
@@ -110,21 +115,54 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed)
     
 class TransView():
+    
+
+        
     @cherrypy.expose
     @require()
-    def index(self, id):
+    def index(self, id, click=None):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
+        
+        if click=='flagged':
+            self.toggleFlag(id)
+        if click=='reviewed':
+            self.toggleReviewed(id)
+            
+        cursor.execute("SELECT MAX(id) FROM `transaction_log`;")
+        max = cursor.fetchone()
         cursor.execute("SELECT * FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
+        cursor.close()        
+        tmpl = lookup.get_template('transview.html')
+        return tmpl.render(row=row, username=getUsername(), max=max) 
+    
+    def toggleReviewed(self, id):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor()
+        cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = " + id + ";")
+        reviewed = cursor.fetchone()
+        if reviewed[0] == 1:
+            cursor.execute("UPDATE transaction_log SET reviewed = 0 WHERE id = " + id +";") 
+        else:
+            cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = " + id +";")
         cursor.close()
         
-        tmpl = lookup.get_template('transview.html')
-        return tmpl.render(row=row, username=getUsername()) 
-    
+    def toggleFlag(self, id):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor()
+        cursor.execute("SELECT flagged FROM `transaction_log` WHERE id = " + id + ";")
+        flagged = cursor.fetchone()
+        if flagged[0] == 1:
+            cursor.execute("UPDATE transaction_log SET flagged = 0 WHERE id = " + id +";")
+        else:
+            cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = " + id +";")
+        cursor.close()
+
+        
 class Monitor():
     def calculateStats(self, extraWhereClause=""):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)

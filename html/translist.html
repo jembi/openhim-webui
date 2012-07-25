@@ -111,11 +111,19 @@ body {
 		<br /> <br />
 
 		<form name="filter_form" class="well form-inline">
-			<label class="checkbox">
-				<input type="checkbox" /> Show only flagged
+			<label  class="checkbox">
+				<input name="flagged" type="checkbox" 
+					% if flagged == 'on':
+						checked="checked"
+					% endif
+					onchange="document.filter_form.submit();"/> Show only flagged
 			</label>
 			<label class="checkbox">
-				<input type="checkbox" /> Show only un-reviewed
+				<input name="unreviewed" type="checkbox" 
+					% if unreviewed == 'on':
+						checked="checked"
+					% endif
+					onchange="document.filter_form.submit();" /> Show only un-reviewed
 			</label> 
 			<label> Status: 
 				<select name="status" onchange="document.filter_form.submit();">
@@ -238,8 +246,20 @@ body {
 							% endif
 						</td>
 						<td>${row[8]}</td>
-						<td></td>
-						<td></td>
+						<td>
+							% if row[15] == 1:
+								Yes
+							% else:
+								No
+							%endif
+						</td>
+						<td>
+							% if row[14] == 1:
+								Yes
+							% else:
+								No
+							%endif
+						</td>
 					</tr>
 				% endfor
 			</tbody>
