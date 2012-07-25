@@ -9,6 +9,8 @@ from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
 from auth import AuthController, require, member_of, name_is, SESSION_KEY
+import datetime
+import re
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -26,8 +28,11 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 dbhost = "localhost"
 dbuser = "root"
-dbpasswd = ""
+dbpasswd = "D3vl0cal"
 dbname = "interoperability_layer" 
+
+monitoring_num_days = 7
+datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
@@ -38,12 +43,20 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1"):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
-        sql = "SELECT * FROM `transaction_log`"
-        countSql = "SELECT COUNT(*) FROM `transaction_log`"
+        now = datetime.datetime.now().strftime('%Y-%m-%d')
+
+        if dateFrom is None or not datePattern.match(dateFrom):
+            dateFrom = now
+        if dateTo is None or not datePattern.match(dateTo):
+            dateTo = now
+
+        receivedClause = "recieved_timestamp>='" + dateFrom + " 00:00:00' and recieved_timestamp<='" + dateTo + " 23:59:59'"
+        sql = "SELECT * FROM `transaction_log` WHERE " + receivedClause
+        countSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause
         
         whereClauses = [];
         if status == '1':
@@ -75,9 +88,9 @@ class TransList(object):
             whereClauses.append(ALERT_WHERE_CLAUSE)
             
         if len(whereClauses) > 0:
-            sql += " WHERE "
+            sql += " AND "
             sql += " AND ".join(whereClauses)
-            countSql += " WHERE "
+            countSql += " AND "
             countSql += " AND ".join(whereClauses)
             
         sql += " ORDER BY recieved_timestamp DESC"
@@ -97,7 +110,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo)
     
 class TransView():
     @cherrypy.expose
@@ -118,21 +131,22 @@ class Monitor():
         cursor = conn.cursor ()
         stats = {}
         
-        processingSql = "SELECT COUNT(*) FROM `transaction_log` WHERE status=1"
-        completedSql = "SELECT COUNT(*) FROM `transaction_log` WHERE status=2"
-        errorSql = "SELECT COUNT(*) FROM `transaction_log` WHERE status=3"
+        receivedClause = "recieved_timestamp > subdate(curdate(), interval " + str(monitoring_num_days) + " day)"
+        processingSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=1"
+        completedSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=2"
+        errorSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=3"
         
-        avgSql = "SELECT AVG(responded_timestamp - recieved_timestamp) FROM `transaction_log`"
-        maxSql = "SELECT MAX(responded_timestamp - recieved_timestamp) FROM `transaction_log`"
-        minSql = "SELECT MIN(responded_timestamp - recieved_timestamp) FROM `transaction_log`"
+        avgSql = "SELECT AVG(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
+        maxSql = "SELECT MAX(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
+        minSql = "SELECT MIN(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
         
         if extraWhereClause != "":
             processingSql += " AND " + extraWhereClause + ";"
             completedSql += " AND " + extraWhereClause + ";"
             errorSql += " AND " + extraWhereClause + ";"
-            avgSql += " WHERE " + extraWhereClause + ";"
-            maxSql += " WHERE " + extraWhereClause + ";"
-            minSql += " WHERE " + extraWhereClause + ";"
+            avgSql += " AND " + extraWhereClause + ";"
+            maxSql += " AND " + extraWhereClause + ";"
+            minSql += " AND " + extraWhereClause + ";"
         else:
             processingSql += ";"
             completedSql += ";"
@@ -174,9 +188,9 @@ class Monitor():
         queryFacStats = self.calculateStats(QUERY_FAC_WHERE_CLAUSE);
         getFacStats = self.calculateStats(GET_FAC_WHERE_CLAUSE);
         alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
-        
+
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, username=getUsername()) 
+        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, username=getUsername(), monitoring_num_days=monitoring_num_days) 
     
 class Root(object):
     translist = TransList()
@@ -204,7 +218,8 @@ def main():
           '/': {'tools.staticdir.root': current_dir + '/static'},
           '/css': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'css'},
           '/js': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'js'},
-          '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'img'}
+          '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'img'},
+          '/less': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'less'}
           }
 
     cherrypy.quickstart(Root(), '/', appConfig)
