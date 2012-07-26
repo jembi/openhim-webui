@@ -246,18 +246,16 @@ body {
 							% endif
 						</td>
 						<td>${row[8]}</td>
-						<td>
+						<td style="text-align: center; vertical-align: middle;">
 							% if row[15] == 1:
-								Yes
+								<i class="icon-ok"></i>
 							% else:
-								No
+								<i class="icon-question-sign"></i>
 							%endif
 						</td>
-						<td>
+						<td style="text-align: center; vertical-align: middle;">
 							% if row[14] == 1:
-								Yes
-							% else:
-								No
+								<i class="icon-flag"></i>
 							%endif
 						</td>
 					</tr>
