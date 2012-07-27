@@ -1,7 +1,4 @@
-ALTER TABLE transaction_log ADD flagged BOOLEAN;
-ALTER TABLE transaction_log ADD reviewed BOOLEAN;
-
-UPDATE transaction_log SET reviewed = 0 WHERE status = 3 AND reviewed = NULL;
+use interoperability_layer;
 
 DELIMITER |
 DROP TRIGGER IF EXISTS update_reviewed;

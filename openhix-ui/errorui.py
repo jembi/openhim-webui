@@ -28,7 +28,7 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 dbhost = "localhost"
 dbuser = "root"
-dbpasswd = "Jembi1"
+dbpasswd = ""
 dbname = "interoperability_layer" 
 
 monitoring_num_days = 7
@@ -48,9 +48,10 @@ class TransList(object):
         page = int(page)
         
         now = datetime.datetime.now().strftime('%Y-%m-%d')
+        seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
 
         if dateFrom is None or not datePattern.match(dateFrom):
-            dateFrom = now
+            dateFrom = seven_days_ago
         if dateTo is None or not datePattern.match(dateTo):
             dateTo = now
 
