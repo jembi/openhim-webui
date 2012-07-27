@@ -11,6 +11,7 @@ import MySQLdb
 from auth import AuthController, require, member_of, name_is, SESSION_KEY
 import datetime
 import re
+import ConfigParser
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -26,10 +27,23 @@ QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GE
 GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
 ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
-dbhost = "localhost"
-dbuser = "root"
-dbpasswd = ""
-dbname = "interoperability_layer" 
+config = ConfigParser.RawConfigParser();
+
+#config.add_section('Database Parameters')
+#config.set('Database Parameters', 'dbhost', 'localhost')
+#config.set('Database Parameters', 'dbuser', 'root')
+#config.set('Database Parameters', 'dbpasswd', 'Jembi1')
+#config.set('Database Parameters', 'dbname', 'interoperability_layer')
+
+#with open(current_dir + '/resources' + '/database.cfg', 'wb') as configfile:
+#    config.write(configfile)
+
+config.read(current_dir + '/resources' + '/database.cfg')
+    
+dbhost = config.get('Database Parameters','dbhost')
+dbuser =  config.get('Database Parameters','dbuser')
+dbpasswd = config.get('Database Parameters','dbpasswd')
+dbname = config.get('Database Parameters','dbname')
 
 monitoring_num_days = 7
 translist_num_days = 7
