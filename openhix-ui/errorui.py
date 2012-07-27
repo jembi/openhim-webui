@@ -32,6 +32,7 @@ dbpasswd = ""
 dbname = "interoperability_layer" 
 
 monitoring_num_days = 7
+translist_num_days = 7
 datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 
 def getUsername():
@@ -48,7 +49,7 @@ class TransList(object):
         page = int(page)
         
         now = datetime.datetime.now().strftime('%Y-%m-%d')
-        seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).strftime('%Y-%m-%d')
+        seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=translist_num_days)).strftime('%Y-%m-%d')
 
         if dateFrom is None or not datePattern.match(dateFrom):
             dateFrom = seven_days_ago
@@ -70,7 +71,7 @@ class TransList(object):
         if flagged == 'on':
             whereClauses.append("flagged=1")
         if unreviewed == 'on':
-            whereClauses.append("(reviewed=0 OR reviewed IS NULL)")
+            whereClauses.append("reviewed=0")
             
         if endpoint == 'savePatientEncounter':
             whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
