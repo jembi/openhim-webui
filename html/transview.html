@@ -250,7 +250,7 @@ body {
 							<td width="150px">Stacktrace:</td>
 						</tr>
 					</table>
-					<textarea data-toggle="modal" data-target="#stacktraceModal" rows="10" style="width: 95%" readonly="readonly">${row[12]}</textarea>
+					<pre class="pre_small" data-toggle="modal" data-target="#stacktraceModal"><code class="code_small">${row[12]}</code></pre>
 				</div>
 			</div>
 
@@ -261,7 +261,7 @@ body {
 	<div class="modal hide modal-code" id="responseModal">
     <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Response</h3>
+    <h3>Response Body</h3>
     </div>
     <div class="modal-body">
     <pre><code class="xml">${row[7] | x}</code></pre>
@@ -274,7 +274,7 @@ body {
     <div class="modal hide modal-code" id="requestModal">
     <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>Request</h3>
+    <h3>Request Body</h3>
     </div>
     <div class="modal-body">
     <pre><code class="xml">${row[4] | x}</code></pre>
