@@ -49,6 +49,8 @@ dbpasswd = config.get('Database Parameters','dbpasswd')
 dbname = config.get('Database Parameters','dbname')
 
 config.read(current_dir + '/resources' + '/auth.cfg')
+hie_host = config.get('Authentication Details', 'hie_host')
+hie_port = int(config.get('Authentication Details', 'hie_port'))
 username = config.get('Authentication Details', 'username')
 password = config.get('Authentication Details', 'password')
 
@@ -66,7 +68,7 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None):
         conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
@@ -139,7 +141,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason)
     
 class TransView():
     
@@ -195,16 +197,15 @@ class TransView():
         row = cursor.fetchone()
         cursor.close()
                
-        httpcon = httplib.HTTPSConnection(host = "hie.jembi.org:5000")
+        httpcon = httplib.HTTPSConnection(host=hie_host, port=hie_port)
         userAndPass = b64encode((username + ":" + password).encode()).decode("ascii")
         headers = { 'Authorization' : 'Basic %s' %  userAndPass }
-
+    
         httpcon.request(row[1], "/" + row[0] +"?" + row[2], row[3], headers)
         resp = httpcon.getresponse()
-        print resp.status, resp.reason
         httpcon.close()
         
-        raise cherrypy.HTTPRedirect("../translist?response="+ str(resp.status))
+        raise cherrypy.HTTPRedirect("../translist?response="+ str(resp.status) + "&reason=" +resp.reason)
         
 class Monitor():
     def calculateStats(self, extraWhereClause=""):

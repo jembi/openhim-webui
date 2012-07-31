@@ -112,19 +112,22 @@ body {
 		
 		%if response in ['200', '201', '203', '204', '205', '206', '207', '208', '226']:
 		<div class="alert alert-success">
-   		 The transaction completed successfully. Status code: ${response}.
+   		 The transaction completed successfully. Status code: ${response}, ${reason}
     	</div>
     	%elif response in ['100', '101', 102]:
     	<div class="alert alert-info">
-    	 The server has received the request and responded with status ${response}. Please check the transaction log for more details.
+    	 The server has received the request and responded with status ${response}. Please check the transaction log for more details.<br>
+    	 ${reason}
     	</div>
     	%elif response in ['300', '301', '302', '303', '304', '305', '306', '307', '308']:
     	<div class="alert"> 
-    	 The transaction was redirected by the server with status code ${response}. Please check the transaction log for more details.
+    	 The transaction was redirected by the server with status code ${response}.<br>
+    	 ${reason}
     	</div>
     	%elif response != None:
     	<div class="alert alert-error">
-   		 Error code: ${response}. The transaction failed to complete successfully. Please check the transaction log for more details.
+   		 Error code: ${response}. The transaction failed to complete successfully.<br>
+   		 ${reason}
     	</div>
     	%endif
     	
