@@ -12,6 +12,9 @@ from auth import AuthController, require, member_of, name_is, SESSION_KEY
 import datetime
 import re
 import ConfigParser
+import httplib
+import socket
+from base64 import b64encode
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -39,11 +42,16 @@ config = ConfigParser.RawConfigParser();
 #    config.write(configfile)
 
 config.read(current_dir + '/resources' + '/database.cfg')
-    
 dbhost = config.get('Database Parameters','dbhost')
+dbport = int(config.get('Database Parameters','dbport'))
 dbuser =  config.get('Database Parameters','dbuser')
 dbpasswd = config.get('Database Parameters','dbpasswd')
 dbname = config.get('Database Parameters','dbname')
+
+config.read(current_dir + '/resources' + '/auth.cfg')
+username = config.get('Authentication Details', 'username')
+password = config.get('Authentication Details', 'password')
+
 
 monitoring_num_days = 7
 translist_num_days = 7
@@ -58,8 +66,8 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None):
+        conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
         now = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -131,7 +139,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response)
     
 class TransView():
     
@@ -177,7 +185,26 @@ class TransView():
         else:
             cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = " + id +";")
         cursor.close()
+    
+    @cherrypy.expose
+    @require()
+    def rerun(self,id):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor()
+        cursor.execute("SELECT path, http_method, request_params, body, authorized_username FROM transaction_log WHERE id = " + id + ";")
+        row = cursor.fetchone()
+        cursor.close()
+               
+        httpcon = httplib.HTTPSConnection(host = "hie.jembi.org:5000")
+        userAndPass = b64encode((username + ":" + password).encode()).decode("ascii")
+        headers = { 'Authorization' : 'Basic %s' %  userAndPass }
 
+        httpcon.request(row[1], "/" + row[0] +"?" + row[2], row[3], headers)
+        resp = httpcon.getresponse()
+        print resp.status, resp.reason
+        httpcon.close()
+        
+        raise cherrypy.HTTPRedirect("../translist?response="+ str(resp.status))
         
 class Monitor():
     def calculateStats(self, extraWhereClause=""):

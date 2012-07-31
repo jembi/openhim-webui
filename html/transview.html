@@ -35,15 +35,8 @@ body {
 	height:95%;
 	overflow: auto;
 }
+.modal.modal-code {width:940px;left:36%;}
 
-.modal-code {
-    //new custom width
-    width: 750px;
-    //must be half of the width, minus scrollbar on the left (30px)
-    margin: -345px 0 0 -375px;
-}
-
-.modal {width:940px;left:36%;}
 </style>
 
 <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -109,7 +102,7 @@ body {
 			<div class="row">
 				<div class="span3 offset8">
 					<form name="flag_review" method="POST">
-						<button class="btn" title="Edit and re-run transaction" disabled="disabled">
+						<button class="btn" data-toggle="modal" data-target="#rerunModal" title="Edit and re-run transaction">
 							<i class="icon-repeat"></i>
 						</button>
 						<button 
@@ -294,6 +287,19 @@ body {
     </div>
     <div class="modal-footer">
     <a href="#" class="btn" data-dismiss="modal">Close</a>
+    </div>
+    </div>
+    
+    <div class="modal hide" id="rerunModal">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>Re-run Transaction</h3>
+    </div>
+    <div class="modal-body">
+	<p>This will re-run the selected transaction, which could have unintended consequences. Are you sure you want to proceed?</p>
+    </div>
+    <div class="modal-footer">
+    <a href="../transview/rerun?id=${row[0]}" class="btn btn-warning"><i class="icon-white icon-repeat"></i> Re-Run</a><a href="#" class="btn" data-dismiss="modal">Close</a>
     </div>
     </div>
 	<!-- /container -->
