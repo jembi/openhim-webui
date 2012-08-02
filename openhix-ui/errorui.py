@@ -207,7 +207,7 @@ class TransView():
         
         raise cherrypy.HTTPRedirect("../translist?response="+ str(resp.status) + "&reason=" +resp.reason)
         
-class Monitor():
+class Monitor(object):
     def calculateStats(self, extraWhereClause=""):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor ()
@@ -272,12 +272,25 @@ class Monitor():
         alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
 
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, username=getUsername(), monitoring_num_days=monitoring_num_days) 
+        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, 
+                           regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, 
+                           updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
+                           username=getUsername(), monitoring_num_days=monitoring_num_days) 
+
+class About(object):
+    
+    @cherrypy.expose
+    @require()
+    def index(self):
+        tmpl = lookup.get_template('about.html')
+        return tmpl.render(username=getUsername())
+    
     
 class Root(object):
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
+    about = About()
     auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
     
     @cherrypy.expose
