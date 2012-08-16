@@ -54,6 +54,9 @@ hie_port = int(config.get('Authentication Details', 'hie_port'))
 username = config.get('Authentication Details', 'username')
 password = config.get('Authentication Details', 'password')
 
+config.read(current_dir + '/resources' + '/server.cfg')
+servhost = config.get('Server Parameters', 'host')
+servport = int(config.get('Server Parameters', 'port'))
 
 monitoring_num_days = 7
 translist_num_days = 7
@@ -302,8 +305,8 @@ def main():
     CherryPy server and launch the web app"""
     
     # Config server
-    cherrypy.config.update({'server.socket_host': '127.0.0.1',
-                            'server.socket_port': 8081,
+    cherrypy.config.update({'server.socket_host': servhost,
+                            'server.socket_port': servport,
                             'tools.sessions.on': True,
                             'tools.auth.on': True
                           })
