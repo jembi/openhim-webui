@@ -12,7 +12,8 @@ from auth import AuthController, require, member_of, name_is, SESSION_KEY
 import datetime
 import re
 import ConfigParser
-import httplib
+from ndg.httpsclient.https import HTTPSConnection
+from OpenSSL import SSL
 import socket
 from base64 import b64encode
 
@@ -199,8 +200,9 @@ class TransView():
         cursor.execute("SELECT path, http_method, request_params, body, authorized_username FROM transaction_log WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()
-               
-        httpcon = httplib.HTTPSConnection(host=hie_host, port=hie_port)
+        
+        ctx = SSL.Context(SSL.SSLv3_METHOD)       
+        httpcon = HTTPSConnection(host=hie_host, port=hie_port, ssl_context=ctx)
         userAndPass = b64encode((username + ":" + password).encode()).decode("ascii")
         headers = { 'Authorization' : 'Basic %s' %  userAndPass }
     
