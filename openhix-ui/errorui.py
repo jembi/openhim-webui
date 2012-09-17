@@ -26,7 +26,7 @@ GET_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http
 REG_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"
 QUERY_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"
 GET_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='GET'"
-UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/${pat-ID}' AND http_method='PUT'"
+UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"
 QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"
 GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
 ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
@@ -105,8 +105,6 @@ class TransList(object):
             whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
         if endpoint == 'queryForPreviousPatientEncounters':
             whereClauses.append(QUERY_ENC_WHERE_CLAUSE)
-        if endpoint == 'getEncounter':
-            whereClauses.append(GET_ENC_WHERE_CLAUSE)
         if endpoint == 'registerNewClient':
             whereClauses.append(REG_CLIENT_WHERE_CLAUSE)
         if endpoint == 'queryForClient':
@@ -267,7 +265,6 @@ class Monitor(object):
         totalStats = self.calculateStats();
         saveEncStats = self.calculateStats(SAVE_ENC_WHERE_CLAUSE);
         queryEncStats = self.calculateStats(QUERY_ENC_WHERE_CLAUSE);
-        getEncStats = self.calculateStats(GET_ENC_WHERE_CLAUSE);
         regClientStats = self.calculateStats(REG_CLIENT_WHERE_CLAUSE);
         queryClientStats = self.calculateStats(QUERY_CLIENT_WHERE_CLAUSE);
         getClientStats = self.calculateStats(GET_CLIENT_WHERE_CLAUSE);
@@ -277,7 +274,7 @@ class Monitor(object):
         alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
 
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats, getEncStats=getEncStats, 
+        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats,
                            regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, 
                            updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
                            username=getUsername(), monitoring_num_days=monitoring_num_days) 
