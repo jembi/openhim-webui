@@ -21,7 +21,8 @@ Configure and run Web App:
 
 1. Clone the repo using `git clone https://github.com/jembi/openhim-webui.git`
 2. Navigate to /resources/
-3. Here you will see a number of *.cfg files
+3. Execute update_database_x.sql against the interoeprability_layer database created by the RHEA Health Information Mediator. There are multiple of these, execute them in order according to their number
+3. Here you will also see a number of *.cfg files
 4. Fill in database.cfg with the database details fo the OpenHIM
 5. Fill in server.cfg with the details for how you would like this webserver to run
 6. Fill in auth.cfg with authentication details for sending webservice request to the OpenHIM
