@@ -3,6 +3,8 @@ OpenHIM WebUI
 
 This project is a web user interface for the OpenHIM project (https://github.com/jembi/openhim). It provides views and management of the trasaction log as well as monitoring statistics.
 
+See [screenshots](https://github.com/jembi/openhim-webui/wiki/Screenshots)
+
 How to run the web app
 ----------------------
 
