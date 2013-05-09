@@ -30,3 +30,4 @@ Configure and run Web App:
 6. Fill in auth.cfg with authentication details for sending webservice request to the OpenHIM
 7. Navigate to openhim-webui/openhim-webui/
 8. Run the web app using `python errorui.py`
+9. The default login is `admin` with `rhea-password`
