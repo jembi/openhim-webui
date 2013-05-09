@@ -91,90 +91,90 @@ body {
 			<tbody>
 				<tr>
 					<td>Save Patient Encounter</td>
-					<td>${saveEncStats["avg"]}s</td>
-					<td>${saveEncStats["max"]}s</td>
-					<td>${saveEncStats["min"]}s</td>
+					<td>${"%.2f" % (saveEncStats["avg"]) if saveEncStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (saveEncStats["max"]) if saveEncStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (saveEncStats["min"]) if saveEncStats["min"] is not None else ''}s</td>
 					<td>${saveEncStats["processing"]}</td>
 					<td>${saveEncStats["completed"]}</td>
 					<td>${saveEncStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Query for previous patient encounters</td>
-					<td>${queryEncStats["avg"]}s</td>
-					<td>${queryEncStats["max"]}s</td>
-					<td>${queryEncStats["min"]}s</td>
+					<td>${"%.2f" % (queryEncStats["avg"]) if queryEncStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryEncStats["max"]) if queryEncStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryEncStats["min"]) if queryEncStats["min"] is not None else ''}s</td>
 					<td>${queryEncStats["processing"]}</td>
 					<td>${queryEncStats["completed"]}</td>
 					<td>${queryEncStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Register new client</td>
-					<td>${regClientStats["avg"]}s</td>
-					<td>${regClientStats["max"]}s</td>
-					<td>${regClientStats["min"]}s</td>
+					<td>${"%.2f" % (regClientStats["avg"]) if regClientStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (regClientStats["max"]) if regClientStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (regClientStats["min"]) if regClientStats["min"] is not None else ''}s</td>
 					<td>${regClientStats["processing"]}</td>
 					<td>${regClientStats["completed"]}</td>
 					<td>${regClientStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Query for clients</td>
-					<td>${queryClientStats["avg"]}s</td>
-					<td>${queryClientStats["max"]}s</td>
-					<td>${queryClientStats["min"]}s</td>
+					<td>${"%.2f" % (queryClientStats["avg"]) if queryClientStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryClientStats["max"]) if queryClientStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryClientStats["min"]) if queryClientStats["min"] is not None else ''}s</td>
 					<td>${queryClientStats["processing"]}</td>
 					<td>${queryClientStats["completed"]}</td>
 					<td>${queryClientStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Get client</td>
-					<td>${getClientStats["avg"]}s</td>
-					<td>${getClientStats["max"]}s</td>
-					<td>${getClientStats["min"]}s</td>
+					<td>${"%.2f" % (getClientStats["avg"]) if getClientStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (getClientStats["max"]) if getClientStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (getClientStats["min"]) if getClientStats["min"] is not None else ''}s</td>
 					<td>${getClientStats["processing"]}</td>
 					<td>${getClientStats["completed"]}</td>
 					<td>${getClientStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Update client record</td>
-					<td>${updateClientStats["avg"]}s</td>
-					<td>${updateClientStats["max"]}s</td>
-					<td>${updateClientStats["min"]}s</td>
+					<td>${"%.2f" % (updateClientStats["avg"]) if updateClientStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (updateClientStats["max"]) if updateClientStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (updateClientStats["min"]) if updateClientStats["min"] is not None else ''}s</td>
 					<td>${updateClientStats["processing"]}</td>
 					<td>${updateClientStats["completed"]}</td>
 					<td>${updateClientStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Query for HC Facilities</td>
-					<td>${queryFacStats["avg"]}s</td>
-					<td>${queryFacStats["max"]}s</td>
-					<td>${queryFacStats["min"]}s</td>
+					<td>${"%.2f" % (queryFacStats["avg"]) if queryFacStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryFacStats["max"]) if queryFacStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (queryFacStats["min"]) if queryFacStats["min"] is not None else ''}s</td>
 					<td>${queryFacStats["processing"]}</td>
 					<td>${queryFacStats["completed"]}</td>
 					<td>${queryFacStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Get HC Facility</td>
-					<td>${getFacStats["avg"]}s</td>
-					<td>${getFacStats["max"]}s</td>
-					<td>${getFacStats["min"]}s</td>
+					<td>${"%.2f" % (getFacStats["avg"]) if getFacStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (getFacStats["max"]) if getFacStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (getFacStats["min"]) if getFacStats["min"] is not None else ''}s</td>
 					<td>${getFacStats["processing"]}</td>
 					<td>${getFacStats["completed"]}</td>
 					<td>${getFacStats["error"]}</td>
 				</tr>
 				<tr>
 					<td>Post Alert</td>
-					<td>${alertStats["avg"]}s</td>
-					<td>${alertStats["max"]}s</td>
-					<td>${alertStats["min"]}s</td>
+					<td>${"%.2f" % (alertStats["avg"]) if alertStats["avg"] is not None else ''}s</td>
+					<td>${"%.2f" % (alertStats["max"]) if alertStats["max"] is not None else ''}s</td>
+					<td>${"%.2f" % (alertStats["min"]) if alertStats["min"] is not None else ''}s</td>
 					<td>${alertStats["processing"]}</td>
 					<td>${alertStats["completed"]}</td>
 					<td>${alertStats["error"]}</td>
 				</tr>
 				<tr>
 					<td><b>TOTAL</b></td>
-					<td><b>${totalStats["avg"]}s</b></td>
-					<td><b>${totalStats["max"]}s</b></td>
-					<td><b>${totalStats["min"]}s</b></td>
+					<td><b>${"%.2f" % (totalStats["avg"]) if totalStats["avg"] is not None else ''}s</b></td>
+					<td><b>${"%.2f" % (totalStats["max"]) if totalStats["max"] is not None else ''}s</b></td>
+					<td><b>${"%.2f" % (totalStats["min"]) if totalStats["min"] is not None else ''}s</b></td>
 					<td><b>${totalStats["processing"]}</b></td>
 					<td><b>${totalStats["completed"]}</b></td>
 					<td><b>${totalStats["error"]}</b></td>
