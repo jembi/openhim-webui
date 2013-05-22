@@ -88,7 +88,7 @@ class TransList(object):
             dateTo = now
 
         receivedClause = "recieved_timestamp>='" + dateFrom + " 00:00:00' and recieved_timestamp<='" + dateTo + " 23:59:59'"
-        sql = "SELECT * FROM `transaction_log` WHERE " + receivedClause
+        sql = "SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE " + receivedClause
         countSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause
         
         whereClauses = [];
@@ -123,6 +123,8 @@ class TransList(object):
         if endpoint == 'postAlert':
             whereClauses.append(ALERT_WHERE_CLAUSE)
             
+        whereClauses.append("rerun IS NOT true")
+            
         if len(whereClauses) > 0:
             sql += " AND "
             sql += " AND ".join(whereClauses)
@@ -135,6 +137,8 @@ class TransList(object):
             
         sql += ";"
         countSql += ";"
+        
+        print(sql)
         
         cursor = conn.cursor ()
         cursor.execute(sql)
@@ -149,8 +153,6 @@ class TransList(object):
         return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason)
     
 class TransView():
-    
-
         
     @cherrypy.expose
     @require()
@@ -165,7 +167,7 @@ class TransView():
             
         cursor.execute("SELECT MAX(id) FROM `transaction_log`;")
         max = cursor.fetchone()
-        cursor.execute("SELECT * FROM `transaction_log` WHERE id = " + id + ";")
+        cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()        
         tmpl = lookup.get_template('transview.html')
@@ -181,6 +183,7 @@ class TransView():
         else:
             cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = " + id +";")
         cursor.close()
+        conn.commit()
         
     def toggleFlag(self, id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
@@ -192,15 +195,30 @@ class TransView():
         else:
             cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = " + id +";")
         cursor.close()
+        conn.commit()
+        
+    def setRerun(self, id):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor()
+        sql = "UPDATE transaction_log SET rerun = true WHERE id = " + id +";"
+        cursor.execute(sql)
+        cursor.close()
+        conn.commit();
     
     @cherrypy.expose
     @require()
     def rerun(self,id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
-        cursor.execute("SELECT path, http_method, request_params, body, authorized_username FROM transaction_log WHERE id = " + id + ";")
+        response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()
+        
+        if row[4] == 1:
+            raise cherrypy.HTTPRedirect("../translist?reason=This+transaction+has+already+been+re-run!")
+        else:
+            self.setRerun(id);
+            
         
         ctx = SSL.Context(SSL.SSLv3_METHOD)       
         httpcon = HTTPSConnection(host=hie_host, port=hie_port, ssl_context=ctx)
@@ -220,13 +238,15 @@ class Monitor(object):
         stats = {}
         
         receivedClause = "recieved_timestamp > subdate(curdate(), interval " + str(monitoring_num_days) + " day)"
-        processingSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=1"
-        completedSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=2"
-        errorSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=3"
+        noRerunClause = "rerun IS NOT true"
         
-        avgSql = "SELECT AVG(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
-        maxSql = "SELECT MAX(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
-        minSql = "SELECT MIN(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause
+        processingSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=1 AND" + noRerunClause
+        completedSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=2 AND" + noRerunClause
+        errorSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=3 AND" + noRerunClause
+        
+        avgSql = "SELECT AVG(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause + " AND " + noRerunClause
+        maxSql = "SELECT MAX(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause + " AND " + noRerunClause
+        minSql = "SELECT MIN(responded_timestamp - recieved_timestamp) FROM `transaction_log` WHERE " + receivedClause + " AND " + noRerunClause
         
         if extraWhereClause != "":
             processingSql += " AND " + extraWhereClause + ";"
