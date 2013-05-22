@@ -183,6 +183,7 @@ class TransView():
         else:
             cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = " + id +";")
         cursor.close()
+        conn.commit()
         
     def toggleFlag(self, id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
@@ -194,14 +195,15 @@ class TransView():
         else:
             cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = " + id +";")
         cursor.close()
+        conn.commit()
         
     def setRerun(self, id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
         sql = "UPDATE transaction_log SET rerun = true WHERE id = " + id +";"
-        response = cursor.execute(sql)
-        print(sql)
+        cursor.execute(sql)
         cursor.close()
+        conn.commit();
     
     @cherrypy.expose
     @require()
@@ -210,7 +212,7 @@ class TransView():
         cursor = conn.cursor()
         response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = " + id + ";")
         row = cursor.fetchone()
-        #cursor.close()
+        cursor.close()
         
         if row[4] == 1:
             raise cherrypy.HTTPRedirect("../translist?reason=This+transaction+has+already+been+re-run!")
