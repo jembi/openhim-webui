@@ -123,7 +123,7 @@ class TransList(object):
         if endpoint == 'postAlert':
             whereClauses.append(ALERT_WHERE_CLAUSE)
             
-        whereClauses.append("rerun!=1")
+        whereClauses.append("rerun IS NOT true")
             
         if len(whereClauses) > 0:
             sql += " AND "
@@ -137,6 +137,8 @@ class TransList(object):
             
         sql += ";"
         countSql += ";"
+        
+        print(sql)
         
         cursor = conn.cursor ()
         cursor.execute(sql)
@@ -165,7 +167,7 @@ class TransView():
             
         cursor.execute("SELECT MAX(id) FROM `transaction_log`;")
         max = cursor.fetchone()
-        cursor.execute("SELECT * FROM `transaction_log` WHERE id = " + id + ";")
+        cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()        
         tmpl = lookup.get_template('transview.html')
@@ -196,7 +198,9 @@ class TransView():
     def setRerun(self, id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
-        cursor.execute("UPDATE transaction_log SET rerun = 1 WHERE id = " + id +";")
+        sql = "UPDATE transaction_log SET rerun = true WHERE id = " + id +";"
+        response = cursor.execute(sql)
+        print(sql)
         cursor.close()
     
     @cherrypy.expose
@@ -204,14 +208,15 @@ class TransView():
     def rerun(self,id):
         conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
         cursor = conn.cursor()
-        cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = " + id + ";")
+        response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = " + id + ";")
         row = cursor.fetchone()
-        cursor.close()
+        #cursor.close()
         
         if row[4] == 1:
             raise cherrypy.HTTPRedirect("../translist?reason=This+transaction+has+already+been+re-run!")
         else:
-            setRerun(id);
+            self.setRerun(id);
+            
         
         ctx = SSL.Context(SSL.SSLv3_METHOD)       
         httpcon = HTTPSConnection(host=hie_host, port=hie_port, ssl_context=ctx)
@@ -231,7 +236,7 @@ class Monitor(object):
         stats = {}
         
         receivedClause = "recieved_timestamp > subdate(curdate(), interval " + str(monitoring_num_days) + " day)"
-        noRerunClause = "rerun!=1"
+        noRerunClause = "rerun IS NOT true"
         
         processingSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=1 AND" + noRerunClause
         completedSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause + " AND status=2 AND" + noRerunClause

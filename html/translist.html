@@ -133,7 +133,7 @@ body {
    		 Error code: ${response}. The transaction failed to complete successfully.<br>
    		 ${reason}
     	</div>
-    	%else:
+    	%elif reason != None:
     	<div class="alert alert-error">
    		 The transaction failed to complete successfully.<br>
    		 ${reason}
