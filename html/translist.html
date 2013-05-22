@@ -133,6 +133,11 @@ body {
    		 Error code: ${response}. The transaction failed to complete successfully.<br>
    		 ${reason}
     	</div>
+    	%else:
+    	<div class="alert alert-error">
+   		 The transaction failed to complete successfully.<br>
+   		 ${reason}
+    	</div>
     	%endif
     	
 		<form name="filter_form" class="well form-inline">
