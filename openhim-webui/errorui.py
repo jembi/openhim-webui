@@ -88,7 +88,7 @@ class TransList(object):
             dateTo = now
 
         receivedClause = "recieved_timestamp>='" + dateFrom + " 00:00:00' and recieved_timestamp<='" + dateTo + " 23:59:59'"
-        sql = "SELECT * FROM `transaction_log` WHERE " + receivedClause
+        sql = "SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE " + receivedClause
         countSql = "SELECT COUNT(*) FROM `transaction_log` WHERE " + receivedClause
         
         whereClauses = [];
