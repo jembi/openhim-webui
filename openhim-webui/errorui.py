@@ -94,9 +94,9 @@ class TransList(object):
         whereClauses = [];
         if status == '1':
             whereClauses.append("status=1")
-        if status == '2':
+        elif status == '2':
             whereClauses.append("status=2")
-        if status == '3':
+        elif status == '3':
             whereClauses.append("status=3")
             
         if flagged == 'on':
@@ -106,21 +106,23 @@ class TransList(object):
             
         if endpoint == 'savePatientEncounter':
             whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
-        if endpoint == 'queryForPreviousPatientEncounters':
+        elif endpoint == 'queryForPreviousPatientEncounters':
             whereClauses.append(QUERY_ENC_WHERE_CLAUSE)
-        if endpoint == 'registerNewClient':
+        elif endpoint == 'getPatientEncounter':
+            whereClauses.append(GET_ENC_WHERE_CLAUSE)
+        elif endpoint == 'registerNewClient':
             whereClauses.append(REG_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'queryForClient':
+        elif endpoint == 'queryForClient':
             whereClauses.append(QUERY_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'getClient':
+        elif endpoint == 'getClient':
             whereClauses.append(GET_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'updateClientRecord':
+        elif endpoint == 'updateClientRecord':
             whereClauses.append(UPDATE_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'queryForHCFacilities':
+        elif endpoint == 'queryForHCFacilities':
             whereClauses.append(QUERY_FAC_WHERE_CLAUSE)
-        if endpoint == 'getHCFacility':
+        elif endpoint == 'getHCFacility':
             whereClauses.append(GET_FAC_WHERE_CLAUSE)
-        if endpoint == 'postAlert':
+        elif endpoint == 'postAlert':
             whereClauses.append(ALERT_WHERE_CLAUSE)
             
         whereClauses.append("rerun IS NOT true")
