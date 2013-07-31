@@ -266,8 +266,9 @@ postAlert = "Post Alert"
 		<table class="table table-bordered">
 			<thead>
 				<tr>
+					<th>ID</th>
 					<th>Endpoint</th>
-					<th>Request Params</th>
+					<th>Patient NID</th>
 					<th>Status</th>
 					<th>Recieved Timestamp</th>
 					<th>Reviewed</th>
@@ -277,30 +278,38 @@ postAlert = "Post Alert"
 			<tbody>
 				% for row in rows:
 					<tr onclick="location.href='../transview?id=${row[0]}';">
-						% if re.search("ws/rest/v1/patient/.*/encounters", row[2]) is not None and row[5]=="POST":
+						<td>${row[0]}</td>
+						% if re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="POST":
 							<td><a href="#">${saveEncounter}</a></td>
-						% elif re.search("ws/rest/v1/patient/.*/encounters", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${queryEncounters}</a></td>
-						% elif re.search("ws/rest/v1/patient/.*/encounter/.*", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/patient/.*/encounter/.*', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${getEncounter}</a></td>
-						% elif re.search("ws/rest/v1/patients", row[2]) is not None and row[5]=="POST":
+						% elif re.search(r'ws/rest/v1/patients', row[2]) is not None and row[5]=="POST":
 							<td><a href="#">${registerClient}</a></td>
-						% elif re.search("ws/rest/v1/patients", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/patients', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${queryClient}</a></td>
-						% elif re.search("ws/rest/v1/patient/.*", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/patient/.*', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${getClient}</a></td>
-						% elif re.search("ws/rest/v1/patient/.*", row[2]) is not None and row[5]=="PUT":
+						% elif re.search(r'ws/rest/v1/patient/.*', row[2]) is not None and row[5]=="PUT":
 							<td><a href="#">${updateClient}</a></td>
-						% elif re.search("ws/rest/v1/facilities", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/facilities', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${queryFacility}</a></td>
-						% elif re.search("ws/rest/v1/facility/.*", row[2]) is not None and row[5]=="GET":
+						% elif re.search(r'ws/rest/v1/facility/.*', row[2]) is not None and row[5]=="GET":
 							<td><a href="#">${getFacility}</a></td>
-						% elif re.search("ws/rest/v1/alerts", row[2]) is not None and row[5]=="POST":
+						% elif re.search(r'ws/rest/v1/alerts', row[2]) is not None and row[5]=="POST":
 							<td><a href="#">${postAlert}</a></td>
 						% else:
 							<td><a href="#">${row[5]} ${row[2]}</a></td>
 						% endif
-						<td>${row[3]}</td>
+						<%
+							nidMatch = re.match(r'.*NID-(\d+).*', row[2])
+						%>
+						% if nidMatch:
+							<td>${nidMatch.group(1)}</td>
+						% else:
+							<td></td>
+						% endif
 						<td>
 							% if row[13] == 1:
 								Processing
