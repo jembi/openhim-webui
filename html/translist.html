@@ -269,7 +269,8 @@ postAlert = "Post Alert"
 					<th>ID</th>
 					<th>Endpoint</th>
 					<th>Patient NID</th>
-					<th>Status</th>
+					<th>Processing Status</th>
+					<th>Response Status</th>
 					<th>Recieved Timestamp</th>
 					<th>Reviewed</th>
 					<th>Flagged</th>
@@ -319,6 +320,11 @@ postAlert = "Post Alert"
 								Error
 							% endif
 						</td>
+						% if row[6]:
+							<td>${row[6]}</td>
+						% else:
+							<td></td>
+						% endif
 						<td>${row[8]}</td>
 						<td style="text-align: center; vertical-align: middle;">
 							% if row[15] == 1:
