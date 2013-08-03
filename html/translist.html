@@ -89,6 +89,8 @@ updateClient = "Update Patient Record"
 queryFacility = "Query for HC Facilities"
 getFacility = "Get HC Facility"
 postAlert = "Post Alert"
+
+sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Musha"), ("363", "Ruhunda")]
 %>
 
 <body>
@@ -245,6 +247,18 @@ postAlert = "Post Alert"
 						value="postAlert">${postAlert}</option>
 				</select>
 			</label>
+			<label> Origin: 
+				<select name="origin" onchange="document.filter_form.submit();">
+					<option>All</option>
+					% for site in sites:
+						<option
+							% if origin == site[0]:
+								selected="selected"
+							% endif					
+							value="${site[0]}">${site[1]} (${site[0]})</option>
+					% endfor
+				</select>
+			</label>
 			<label> Date From: 
 			<div class="input-append date" id="dateFromDiv" data-date="${dateFrom}" data-date-format="yyyy-mm-dd">
 				<input name="dateFrom" class="span2" size="16" type="text" value="${dateFrom}">
@@ -268,6 +282,7 @@ postAlert = "Post Alert"
 				<tr>
 					<th>ID</th>
 					<th>Endpoint</th>
+					<th>Origin</th>
 					<th>Patient NID</th>
 					<th>Processing Status</th>
 					<th>Response Status</th>
@@ -279,7 +294,7 @@ postAlert = "Post Alert"
 			<tbody>
 				% for row in rows:
 					<tr onclick="location.href='../transview?id=${row[0]}';">
-						<td>${row[0]}</td>
+						<td><a href="#">${row[0]}</a></td>
 						% if re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="POST":
 							<td><a href="#">${saveEncounter}</a></td>
 						% elif re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="GET":
@@ -303,6 +318,19 @@ postAlert = "Post Alert"
 						% else:
 							<td><a href="#">${row[5]} ${row[2]}</a></td>
 						% endif
+						<%
+							## Try to find a facility code in either the transactions request params or body
+							trxOrigin = ""
+							trxOriginMatch = re.match(r'.*[Ee][Ll][Ii][Dd]=(\d+).*', row[3])
+							if not trxOriginMatch:
+								trxOriginMatch = re.match(r'.*<HD\.1>(\d+)</HD\.1>.*', row[4], re.DOTALL)
+							if not trxOriginMatch:
+								trxOriginMatch = re.match(r'.*<CX\.5>OMRS(\d+)</CX\.5>.*', row[4], re.DOTALL)
+							if trxOriginMatch:
+								trxOriginIndex = [st[0] for st in sites].index( trxOriginMatch.group(1) )
+								trxOrigin = "%s (%s)" % sites[trxOriginIndex][::-1]
+						%>
+						<td>${trxOrigin}</td>
 						<%
 							nidMatch = re.match(r'.*NID-(\d+).*', row[2])
 						%>
@@ -350,6 +378,8 @@ postAlert = "Post Alert"
 					request_params.append("status=" + status)
 				if endpoint is not None:
 					request_params.append("endpoint=" + endpoint)
+				if origin is not None:
+					request_params.append("origin=" + origin)
 				if dateFrom is not None:
 					request_params.append("dateFrom=" + dateFrom)
 				if dateTo is not None:

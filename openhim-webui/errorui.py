@@ -75,7 +75,7 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None, origin=None):
         conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
@@ -127,6 +127,13 @@ class TransList(object):
             
         whereClauses.append("rerun IS NOT true")
             
+        if origin is not None and origin != "All" and origin != "all":
+            whereClauses.append(("("
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*'"
+                ")") % (origin, origin, origin))
+            
         if len(whereClauses) > 0:
             sql += " AND "
             sql += " AND ".join(whereClauses)
@@ -152,7 +159,8 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin)
+
     
 class TransView():
         
