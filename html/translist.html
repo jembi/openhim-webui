@@ -327,8 +327,12 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 							if not trxOriginMatch:
 								trxOriginMatch = re.match(r'.*<CX\.5>OMRS(\d+)</CX\.5>.*', row[4], re.DOTALL)
 							if trxOriginMatch:
-								trxOriginIndex = [st[0] for st in sites].index( trxOriginMatch.group(1) )
-								trxOrigin = "%s (%s)" % sites[trxOriginIndex][::-1]
+								try:
+									trxOriginIndex = [st[0] for st in sites].index( trxOriginMatch.group(1) )
+									trxOrigin = "%s (%s)" % sites[trxOriginIndex][::-1]
+								except ValueError:
+									## Facility code not found in the sites list
+									trxOrigin = trxOriginMatch.group(1)
 						%>
 						<td>${trxOrigin}</td>
 						<%
