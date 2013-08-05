@@ -28,7 +28,7 @@ QUERY_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http
 GET_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http_method='GET'"
 REG_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"
 QUERY_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"
-GET_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='GET'"
+GET_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND path NOT RLIKE '.*encounters' AND http_method='GET'"
 UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"
 QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"
 GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
