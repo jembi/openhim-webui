@@ -75,7 +75,7 @@ class TransList(object):
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None, origin=None):
         conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
@@ -94,9 +94,9 @@ class TransList(object):
         whereClauses = [];
         if status == '1':
             whereClauses.append("status=1")
-        if status == '2':
+        elif status == '2':
             whereClauses.append("status=2")
-        if status == '3':
+        elif status == '3':
             whereClauses.append("status=3")
             
         if flagged == 'on':
@@ -106,24 +106,33 @@ class TransList(object):
             
         if endpoint == 'savePatientEncounter':
             whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
-        if endpoint == 'queryForPreviousPatientEncounters':
+        elif endpoint == 'queryForPreviousPatientEncounters':
             whereClauses.append(QUERY_ENC_WHERE_CLAUSE)
-        if endpoint == 'registerNewClient':
+        elif endpoint == 'getPatientEncounter':
+            whereClauses.append(GET_ENC_WHERE_CLAUSE)
+        elif endpoint == 'registerNewClient':
             whereClauses.append(REG_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'queryForClient':
+        elif endpoint == 'queryForClient':
             whereClauses.append(QUERY_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'getClient':
+        elif endpoint == 'getClient':
             whereClauses.append(GET_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'updateClientRecord':
+        elif endpoint == 'updateClientRecord':
             whereClauses.append(UPDATE_CLIENT_WHERE_CLAUSE)
-        if endpoint == 'queryForHCFacilities':
+        elif endpoint == 'queryForHCFacilities':
             whereClauses.append(QUERY_FAC_WHERE_CLAUSE)
-        if endpoint == 'getHCFacility':
+        elif endpoint == 'getHCFacility':
             whereClauses.append(GET_FAC_WHERE_CLAUSE)
-        if endpoint == 'postAlert':
+        elif endpoint == 'postAlert':
             whereClauses.append(ALERT_WHERE_CLAUSE)
             
         whereClauses.append("rerun IS NOT true")
+            
+        if origin is not None and origin != "All" and origin != "all":
+            whereClauses.append(("("
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*'"
+                ")") % (origin, origin, origin))
             
         if len(whereClauses) > 0:
             sql += " AND "
@@ -150,7 +159,8 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin)
+
     
 class TransView():
         
