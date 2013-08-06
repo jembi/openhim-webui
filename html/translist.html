@@ -366,28 +366,42 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 							<td></td>
 						% endif
 						% if row[13] == 3 and row[12] and row[12] != "":
-							% if re.search(r'Could not validate client', row[12]):
-								<td>${CR}</td>
-							% elif re.search(r'Could not validate provider', row[12]):
-								<td>${PR}</td>
-							% elif re.search(r'Could not validate location', row[12]):
-								<td>${FR}</td>
-							% elif re.search(r'Could not enrich client demographics', row[12]):
-								<td>${HIM} or ${CR}</td>
-							% elif re.search(r'Invalid client ID', row[12]):
-								<td>${HIM} or ${CR}</td>
-							% elif re.search(r'Invalid provider ID', row[12]):
-								<td>${HIM} or ${PR}</td>
-							% elif re.search(r'Invalid location ID', row[12]):
-								<td>${HIM} or ${FR}</td>
-							% elif re.search(r'Invalid Client: id or id type is null', row[12]):
-								<td>${HIM} (probably error in msg)</td>
-							% elif re.search(r'Invalid Client: ECID for id type: [\w\d]+ with ID: [\w\d]+ could not be found in Client Registry', row[12]):
-								<td>${CR}</td>
-							% elif re.search(r'Invalid Provider: id or id type is null', row[12]):
-								<td>${HIM} (probably error in msg)</td>
-							% elif re.search(r'Invalid Provider: NID for EPID: [\w\d]+ could not be found in Provid?er Registry', row[12]):
-								<td>${PR}</td>
+							<%
+								pof = re.search(r'(Could not validate client)', row[12])
+								pofReg = CR
+								if not pof:
+									pof = re.search(r'(Could not validate provider)', row[12])
+									pofReg = PR
+								if not pof:
+									pof = re.search(r'(Could not validate location)', row[12])
+									pofReg = FR
+								if not pof:
+									pof = re.search(r'(Could not enrich client demographics)', row[12])
+									pofReg = " or ".join( (HIM, CR) )
+								if not pof:
+									pof = re.search(r'(Invalid client ID)', row[12])
+									pofReg = " or ".join( (HIM, CR) )
+								if not pof:
+									pof = re.search(r'(Invalid provider ID)', row[12])
+									pofReg = " or ".join( (HIM, PR) )
+								if not pof:
+									pof = re.search(r'(Invalid location ID)', row[12])
+									pofReg = " or ".join( (HIM, FR) )
+								if not pof:
+									pof = re.search(r'(Invalid Client: id or id type is null)', row[12])
+									pofReg = "Message Error"
+								if not pof:
+									pof = re.search(r'(Invalid Client: ECID for id type: [\w\d\+]+ with ID: [\w\d]+ could not be found in Client Registry)', row[12])
+									pofReg = CR
+								if not pof:
+									pof = re.search(r'(Invalid Provider: id or id type is null)', row[12])
+									pofReg = "Message Error"
+								if not pof:
+									pof = re.search(r'(Invalid Provider: NID for EPID: [\w\d\+]+ could not be found in Provid?er Registry)', row[12])
+									pofReg = "PR"
+							%>
+							% if pof:
+								<td>${pofReg} (${pof.group(1)})</td>
 							% else:
 								<td></td>
 							% endif
