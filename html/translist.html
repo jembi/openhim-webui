@@ -90,6 +90,13 @@ queryFacility = "Query for HC Facilities"
 getFacility = "Get HC Facility"
 postAlert = "Post Alert"
 
+CR = "CR"
+PR = "PR"
+FR = "FR"
+TS = "TS"
+SHR = "SHR"
+HIM = "HIM"
+
 sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Musha"), ("363", "Ruhunda")]
 %>
 
@@ -286,6 +293,7 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 					<th>Patient NID</th>
 					<th>Processing Status</th>
 					<th>Response Status</th>
+					<th>Point of Failure</th>
 					<th>Recieved Timestamp</th>
 					<th>Reviewed</th>
 					<th>Flagged</th>
@@ -354,6 +362,35 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 						</td>
 						% if row[6]:
 							<td>${row[6]}</td>
+						% else:
+							<td></td>
+						% endif
+						% if row[13] == 3 and row[12] and row[12] != "":
+							% if re.search(r'Could not validate client', row[12]):
+								<td>${CR}</td>
+							% elif re.search(r'Could not validate provider', row[12]):
+								<td>${PR}</td>
+							% elif re.search(r'Could not validate location', row[12]):
+								<td>${FR}</td>
+							% elif re.search(r'Could not enrich client demographics', row[12]):
+								<td>${HIM} or ${CR}</td>
+							% elif re.search(r'Invalid client ID', row[12]):
+								<td>${HIM} or ${CR}</td>
+							% elif re.search(r'Invalid provider ID', row[12]):
+								<td>${HIM} or ${PR}</td>
+							% elif re.search(r'Invalid location ID', row[12]):
+								<td>${HIM} or ${FR}</td>
+							% elif re.search(r'Invalid Client: id or id type is null', row[12]):
+								<td>${HIM} (probably error in msg)</td>
+							% elif re.search(r'Invalid Client: ECID for id type: [\w\d]+ with ID: [\w\d]+ could not be found in Client Registry', row[12]):
+								<td>${CR}</td>
+							% elif re.search(r'Invalid Provider: id or id type is null', row[12]):
+								<td>${HIM} (probably error in msg)</td>
+							% elif re.search(r'Invalid Provider: NID for EPID: [\w\d]+ could not be found in Provid?er Registry"', row[12]):
+								<td>${PR}</td>
+							% else:
+								<td></td>
+							% endif
 						% else:
 							<td></td>
 						% endif
