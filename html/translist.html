@@ -386,7 +386,7 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 								<td>${CR}</td>
 							% elif re.search(r'Invalid Provider: id or id type is null', row[12]):
 								<td>${HIM} (probably error in msg)</td>
-							% elif re.search(r'Invalid Provider: NID for EPID: [\w\d]+ could not be found in Provid?er Registry"', row[12]):
+							% elif re.search(r'Invalid Provider: NID for EPID: [\w\d]+ could not be found in Provid?er Registry', row[12]):
 								<td>${PR}</td>
 							% else:
 								<td></td>
