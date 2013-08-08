@@ -76,30 +76,6 @@ body {
 	href="ico/apple-touch-icon-57-precomposed.png">
 </head>
 
-<%!
-import re
-
-saveEncounter = "Save Patient Encounter"
-queryEncounters = "Query Patient Encounters"
-getEncounter = "Get Patient Encounter"
-registerClient = "Register Patient"
-queryClient = "Query Patient"
-getClient = "Get Patient"
-updateClient = "Update Patient Record"
-queryFacility = "Query for HC Facilities"
-getFacility = "Get HC Facility"
-postAlert = "Post Alert"
-
-CR = "CR"
-PR = "PR"
-FR = "FR"
-TS = "TS"
-SHR = "SHR"
-HIM = "HIM"
-
-sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Musha"), ("363", "Ruhunda")]
-%>
-
 <body>
 
 	<div class="navbar navbar-fixed-top">
@@ -202,68 +178,6 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 			<label> Endpoint: 
 				<select name="endpoint" onchange="document.filter_form.submit();">
 					<option>All</option>
-					<option
-						% if endpoint == 'savePatientEncounter':
-							selected="selected"
-						% endif
-						value="savePatientEncounter">${saveEncounter}</option>
-					<option
-						% if endpoint == 'queryForPreviousPatientEncounters':
-							selected="selected"
-						% endif
-						value="queryForPreviousPatientEncounters">${queryEncounters}</option>
-					<option
-						% if endpoint == 'getPatientEncounter':
-							selected="selected"
-						% endif
-						value="getPatientEncounter">${getEncounter}</option>
-					<option
-						% if endpoint == 'registerNewClient':
-							selected="selected"
-						% endif
-						value="registerNewClient">${registerClient}</option>
-					<option
-						% if endpoint == 'queryForClient':
-							selected="selected"
-						% endif
-						value="queryForClient">${queryClient}</option>
-					<option
-						% if endpoint == 'getClient':
-							selected="selected"
-						% endif
-						value="getClient">${getClient}</option>
-					<option
-						% if endpoint == 'updateClientRecord':
-							selected="selected"
-						% endif
-						value="updateClientRecord">${updateClient}</option>
-					<option
-						% if endpoint == 'queryForHCFacilities':
-							selected="selected"
-						% endif
-						value="queryForHCFacilities">${queryFacility}</option>
-					<option
-						% if endpoint == 'getHCFacility':
-							selected="selected"
-						% endif
-						value="getHCFacility">${getFacility}</option>
-					<option
-						% if endpoint == 'postAlert':
-							selected="selected"
-						% endif
-						value="postAlert">${postAlert}</option>
-				</select>
-			</label>
-			<label> Origin: 
-				<select name="origin" onchange="document.filter_form.submit();">
-					<option>All</option>
-					% for site in sites:
-						<option
-							% if origin == site[0]:
-								selected="selected"
-							% endif					
-							value="${site[0]}">${site[1]} (${site[0]})</option>
-					% endfor
 				</select>
 			</label>
 			<label> Date From: 
@@ -289,11 +203,8 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 				<tr>
 					<th>ID</th>
 					<th>Endpoint</th>
-					<th>Origin</th>
-					<th>Patient NID</th>
 					<th>Processing Status</th>
 					<th>Response Status</th>
-					<th>Point of Failure</th>
 					<th>Recieved Timestamp</th>
 					<th>Reviewed</th>
 					<th>Flagged</th>
@@ -303,54 +214,7 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 				% for row in rows:
 					<tr onclick="location.href='../transview?id=${row[0]}';">
 						<td><a href="#">${row[0]}</a></td>
-						% if re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="POST":
-							<td><a href="#">${saveEncounter}</a></td>
-						% elif re.search(r'ws/rest/v1/patient/.*/encounters', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${queryEncounters}</a></td>
-						% elif re.search(r'ws/rest/v1/patient/.*/encounter/.*', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${getEncounter}</a></td>
-						% elif re.search(r'ws/rest/v1/patients', row[2]) is not None and row[5]=="POST":
-							<td><a href="#">${registerClient}</a></td>
-						% elif re.search(r'ws/rest/v1/patients', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${queryClient}</a></td>
-						% elif re.search(r'ws/rest/v1/patient/.*', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${getClient}</a></td>
-						% elif re.search(r'ws/rest/v1/patient/.*', row[2]) is not None and row[5]=="PUT":
-							<td><a href="#">${updateClient}</a></td>
-						% elif re.search(r'ws/rest/v1/facilities', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${queryFacility}</a></td>
-						% elif re.search(r'ws/rest/v1/facility/.*', row[2]) is not None and row[5]=="GET":
-							<td><a href="#">${getFacility}</a></td>
-						% elif re.search(r'ws/rest/v1/alerts', row[2]) is not None and row[5]=="POST":
-							<td><a href="#">${postAlert}</a></td>
-						% else:
-							<td><a href="#">${row[5]} ${row[2]}</a></td>
-						% endif
-						<%
-							## Try to find a facility code in either the transactions request params or body
-							trxOrigin = ""
-							trxOriginMatch = re.match(r'.*[Ee][Ll][Ii][Dd]=(\d+).*', row[3])
-							if not trxOriginMatch:
-								trxOriginMatch = re.match(r'.*<HD\.1>(\d+)</HD\.1>.*', row[4], re.DOTALL)
-							if not trxOriginMatch:
-								trxOriginMatch = re.match(r'.*<CX\.5>OMRS(\d+)</CX\.5>.*', row[4], re.DOTALL)
-							if trxOriginMatch:
-								try:
-									trxOriginIndex = [st[0] for st in sites].index( trxOriginMatch.group(1) )
-									trxOrigin = "%s (%s)" % sites[trxOriginIndex][::-1]
-								except ValueError:
-									## Facility code not found in the sites list
-									trxOrigin = trxOriginMatch.group(1)
-						%>
-						<td>${trxOrigin}</td>
-						<%
-							nidMatch = re.match(r'.*NID-(\d+).*', row[2])
-						%>
-						% if nidMatch:
-							<td>${nidMatch.group(1)}</td>
-						% else:
-							<td></td>
-						% endif
+						<td><a href="#">${row[5]} ${row[2]}</a></td>
 						<td>
 							% if row[13] == 1:
 								Processing
@@ -362,49 +226,6 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 						</td>
 						% if row[6]:
 							<td>${row[6]}</td>
-						% else:
-							<td></td>
-						% endif
-						% if row[13] == 3 and row[12] and row[12] != "":
-							<%
-								pof = re.search(r'(Could not validate client)', row[12])
-								pofReg = CR
-								if not pof:
-									pof = re.search(r'(Could not validate provider)', row[12])
-									pofReg = PR
-								if not pof:
-									pof = re.search(r'(Could not validate location)', row[12])
-									pofReg = FR
-								if not pof:
-									pof = re.search(r'(Could not enrich client demographics)', row[12])
-									pofReg = " or ".join( (HIM, CR) )
-								if not pof:
-									pof = re.search(r'(Invalid client ID)', row[12])
-									pofReg = " or ".join( (HIM, CR) )
-								if not pof:
-									pof = re.search(r'(Invalid provider ID)', row[12])
-									pofReg = " or ".join( (HIM, PR) )
-								if not pof:
-									pof = re.search(r'(Invalid location ID)', row[12])
-									pofReg = " or ".join( (HIM, FR) )
-								if not pof:
-									pof = re.search(r'(Invalid Client: id or id type is null)', row[12])
-									pofReg = "Message Error"
-								if not pof:
-									pof = re.search(r'(Invalid Client: ECID for id type: [\w\d\+]+ with ID: [\w\d]+ could not be found in Client Registry)', row[12])
-									pofReg = CR
-								if not pof:
-									pof = re.search(r'(Invalid Provider: id or id type is null)', row[12])
-									pofReg = "Message Error"
-								if not pof:
-									pof = re.search(r'(Invalid Provider: NID for EPID: [\w\d\+]+ could not be found in Provid?er Registry)', row[12])
-									pofReg = "PR"
-							%>
-							% if pof:
-								<td>${pofReg} (${pof.group(1)})</td>
-							% else:
-								<td></td>
-							% endif
 						% else:
 							<td></td>
 						% endif
@@ -433,8 +254,6 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 					request_params.append("status=" + status)
 				if endpoint is not None:
 					request_params.append("endpoint=" + endpoint)
-				if origin is not None:
-					request_params.append("origin=" + origin)
 				if dateFrom is not None:
 					request_params.append("dateFrom=" + dateFrom)
 				if dateTo is not None:

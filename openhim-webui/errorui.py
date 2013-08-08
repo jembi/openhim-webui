@@ -23,27 +23,7 @@ from base64 import b64encode
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
 
-SAVE_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='POST'"
-QUERY_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"
-GET_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http_method='GET'"
-REG_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"
-QUERY_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"
-GET_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND path NOT RLIKE '.*encounters' AND http_method='GET'"
-UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"
-QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"
-GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
-ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
-
 config = ConfigParser.RawConfigParser();
-
-#config.add_section('Database Parameters')
-#config.set('Database Parameters', 'dbhost', 'localhost')
-#config.set('Database Parameters', 'dbuser', 'root')
-#config.set('Database Parameters', 'dbpasswd', 'Jembi1')
-#config.set('Database Parameters', 'dbname', 'interoperability_layer')
-
-#with open(current_dir + '/resources' + '/database.cfg', 'wb') as configfile:
-#    config.write(configfile)
 
 config.read(current_dir + '/resources' + '/database.cfg')
 dbhost = config.get('Database Parameters','dbhost')
@@ -69,13 +49,22 @@ datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
 
+def getUniqueURLPaths():
+    conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
+    sql = "SELECT DISTINCT path FROM `transaction_log`";
+    
+    cursor = conn.cursor();
+    cursor.execute(sql);
+    rows = cursor.fetchall();
+    return rows;
+
 class TransList(object):
     
     page_size = 20;
     
     @cherrypy.expose
     @require()
-    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None, origin=None):
+    def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None):
         conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
         page = int(page)
         
@@ -103,36 +92,11 @@ class TransList(object):
             whereClauses.append("flagged=1")
         if unreviewed == 'on':
             whereClauses.append("reviewed=0")
-            
-        if endpoint == 'savePatientEncounter':
-            whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
-        elif endpoint == 'queryForPreviousPatientEncounters':
-            whereClauses.append(QUERY_ENC_WHERE_CLAUSE)
-        elif endpoint == 'getPatientEncounter':
-            whereClauses.append(GET_ENC_WHERE_CLAUSE)
-        elif endpoint == 'registerNewClient':
-            whereClauses.append(REG_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'queryForClient':
-            whereClauses.append(QUERY_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'getClient':
-            whereClauses.append(GET_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'updateClientRecord':
-            whereClauses.append(UPDATE_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'queryForHCFacilities':
-            whereClauses.append(QUERY_FAC_WHERE_CLAUSE)
-        elif endpoint == 'getHCFacility':
-            whereClauses.append(GET_FAC_WHERE_CLAUSE)
-        elif endpoint == 'postAlert':
-            whereClauses.append(ALERT_WHERE_CLAUSE)
+        
+        if endpoint != None:    
+            whereClauses.append("path = '" + endpoint + "'");
             
         whereClauses.append("rerun IS NOT true")
-            
-        if origin is not None and origin != "All" and origin != "all":
-            whereClauses.append(("("
-                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
-                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
-                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*'"
-                ")") % (origin, origin, origin))
             
         if len(whereClauses) > 0:
             sql += " AND "
@@ -159,7 +123,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason)
 
     
 class TransView():
@@ -296,21 +260,16 @@ class Monitor(object):
     @require()
     def index(self):
         totalStats = self.calculateStats();
-        saveEncStats = self.calculateStats(SAVE_ENC_WHERE_CLAUSE);
-        queryEncStats = self.calculateStats(QUERY_ENC_WHERE_CLAUSE);
-        regClientStats = self.calculateStats(REG_CLIENT_WHERE_CLAUSE);
-        queryClientStats = self.calculateStats(QUERY_CLIENT_WHERE_CLAUSE);
-        getClientStats = self.calculateStats(GET_CLIENT_WHERE_CLAUSE);
-        updateClientStats = self.calculateStats(UPDATE_CLIENT_WHERE_CLAUSE);
-        queryFacStats = self.calculateStats(QUERY_FAC_WHERE_CLAUSE);
-        getFacStats = self.calculateStats(GET_FAC_WHERE_CLAUSE);
-        alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
+        endpointStats = {};
+        paths = getUniqueURLPaths();
+        for path in paths:
+            path = str(path[0]);
+            whereClause = "path = '" + path + "'";
+            endpointStats[path] = self.calculateStats(whereClause);
+            print endpointStats[path];
 
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats,
-                           regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, 
-                           updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
-                           username=getUsername(), monitoring_num_days=monitoring_num_days) 
+        return tmpl.render(totalStats=totalStats, endpointStats=endpointStats, username=getUsername(), monitoring_num_days=monitoring_num_days) 
 
 class About(object):
     
