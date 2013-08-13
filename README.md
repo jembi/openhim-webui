@@ -15,6 +15,9 @@ Install Dependancies:
 1. Ensure python pip is installed: `$sudo apt-get install python-pip`
 2. `$pip install cherrypy`
 3. `$pip install mysql-python`
+  * If mysql-python fails to install you may need to install the following packages:
+      * apt-get install libmysqlclient-dev
+      * apt-get install python-dev
 4. `$pip install mako`
 5. `$pip install ndg-httpsclient`
 6. `$sudo pip install ndg-httpsclient`
