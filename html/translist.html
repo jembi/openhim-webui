@@ -178,6 +178,13 @@ body {
 			<label> Endpoint: 
 				<select name="endpoint" onchange="document.filter_form.submit();">
 					<option>All</option>
+					% for e in endpointList:
+					<option
+						% if endpoint == e[0]:
+							selected="selected" 
+						% endif
+						>${e[0]}</option>
+					% endfor
 				</select>
 			</label>
 			<label> Date From: 
