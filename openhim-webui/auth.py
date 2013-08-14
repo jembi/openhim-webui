@@ -37,7 +37,9 @@ def check_credentials(username, password, dbhost, dbuser, dbpasswd, dbname):
     hash = row[2]
     salt = row[3]
     
-    if hash == hashlib.md5(salt + username + password).hexdigest():
+    suppliedhash = hashlib.md5(salt + username + password).hexdigest()
+    
+    if hash == suppliedhash:
         return None
     else:
         return u"The username or password you entered is incorrect."

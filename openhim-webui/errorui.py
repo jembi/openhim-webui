@@ -93,7 +93,7 @@ class TransList(object):
         if unreviewed == 'on':
             whereClauses.append("reviewed=0")
         
-        if endpoint != None:    
+        if endpoint != None and endpoint != "All":
             whereClauses.append("path = '" + endpoint + "'");
             
         whereClauses.append("rerun IS NOT true")
