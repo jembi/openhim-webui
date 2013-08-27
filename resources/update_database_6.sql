@@ -1,10 +1,18 @@
 use interoperability_layer;
 
-create table sites (
+# ENSURE EXISTING TABLES ARE USING INNODB ENGINE RATHER THAN MYISAM.
+# THERE ARE ISSUES CREATING THE FOREIGN KEYS IN THIS SCRIPT IF THE TRANSACTION_LOG TABLE USES THE MYISAM ENGINE.
+ALTER TABLE roles ENGINE=INNODB;
+ALTER TABLE status ENGINE=INNODB;
+ALTER TABLE transaction_log ENGINE=INNODB;
+ALTER TABLE users ENGINE=INNODB;
+ALTER TABLE users_roles ENGINE=INNODB;
+
+create table if not exists sites (
 	id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
-	name text NOT NULL,
+	name varchar(255) NOT NULL,
 	implementation_id int
-) CHARSET=UTF8;
+) ENGINE=InnoDB CHARSET=UTF8;
 
 LOCK TABLES sites WRITE;
 insert into sites values ('1', 'Avega', '547');
@@ -14,35 +22,33 @@ insert into sites values ('4', 'Musha', '357');
 insert into sites values ('5', 'Ruhunda', '363');
 UNLOCK TABLES;
 
-
-create table report (
+create table if not exists report (
 	id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	report_date date NOT NULL,
-	site int NOT NULL.
+	site int NOT NULL,
 	transaction_id int NOT NULL,
-	KEY `Report Date` (`report_date`),
-	KEY `Report Site` (`site`),
-	CONSTRAINT 'report site' FOREIGN KEY (site) REFERENCES sites (id),
-	CONSTRAINT 'report transaction' FOREIGN KEY (transaction_id) REFERENCES transaction_log (id)	
-) CHARSET=UTF8;
+	KEY report_date (report_date),
+	KEY report_site (site),
+	CONSTRAINT report_site FOREIGN KEY (site) REFERENCES sites (id),
+	CONSTRAINT report_transaction FOREIGN KEY (transaction_id) REFERENCES transaction_log (id)	
+) ENGINE=InnoDB CHARSET=UTF8;
 
-
-create table indicator (
+create table if not exists indicator (
 	id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	report_id int NOT NULL,
-	name text NOT NULL,
-	KEY `Indicator Name` (`name`),
-	CONSTRAINT 'indicator report' FOREIGN KEY (report_id) REFERENCES report (id)
-) CHARSET=UTF8;
+	name varchar(255) NOT NULL,
+	KEY indicator_name (name),
+	CONSTRAINT indicator_report FOREIGN KEY (report_id) REFERENCES report (id)
+) ENGINE=InnoDB CHARSET=UTF8;
 
-create table data_element (
+create table if not exists data_element (
 	id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
 	indicator_id int NOT NULL,
-	name text NOT NULL,
-	value text NOT NULL,
-	datatype text,
-	units text,
-	KEY `Data Element Name` (`name`),
-	CONSTRAINT 'data element indicator' FOREIGN KEY (indicator_id) REFERENCES indicator (id)
-) CHARSET=UTF8;
+	name varchar(255) NOT NULL,
+	value varchar(255) NOT NULL,
+	datatype varchar(255),
+	units varchar(255),
+	KEY data_element_name (name),
+	CONSTRAINT data_element_indicator FOREIGN KEY (indicator_id) REFERENCES indicator (id)
+) ENGINE=InnoDB CHARSET=UTF8;
 
