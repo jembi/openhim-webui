@@ -14,6 +14,46 @@
 <link href="../css/bootstrap.css" rel="stylesheet">
 <script src="../js/jquery.min.js"></script>
 <script src="../js/bootstrap.min.js"></script>
+<script src="../js/bootstrap-datepicker.js"></script>
+
+<script>
+	$(document).ready(function() {
+
+		//date validation
+		//from http://www.eyecon.ro/bootstrap-datepicker/
+		//TODO the validation doesn't work correctly yet
+		//var startDate = new Date('${now}');
+		//var endDate = new Date('${now}');
+
+		$('#dateFromDiv').datepicker()
+			.on('changeDate', function(ev){
+				//if (ev.date.valueOf() > endDate.valueOf()){
+				//	$('#alert').show().find('strong').text('The start date can not be greater then the end date');
+				//	$('#refresh').hide();
+				//} else {
+				//	$('#alert').hide();
+				//	startDate = new Date(ev.date);
+				//	$('#startDate').text($('#dateFromDiv').data('date'));
+				//	$('#refresh').show();
+				//}
+				$('#dateFromDiv').datepicker('hide');
+		});
+		$('#dateToDiv').datepicker()
+			.on('changeDate', function(ev){
+				//if (ev.date.valueOf() < startDate.valueOf()){
+				//	$('#alert').show().find('strong').text('The end date can not be less then the start date');
+				//	$('#refresh').hide();
+				//} else {
+				//	$('#alert').hide();
+				//	endDate = new Date(ev.date);
+				//	$('#endDate').text($('#dateToDiv').data('date'));
+				//	$('#refresh').show();
+				//}
+				$('#dateToDiv').datepicker('hide');
+		});
+	});
+</script>
+
 <style>
 body {
 	padding-top: 60px;
@@ -72,6 +112,56 @@ body {
 	<div class="container">
 
 		<h1>Transaction Reports</h1>
+		
+		<form name="filter_form" class="well form-inline">
+			<label> Origin: 
+				<select name="origin" onchange="document.filter_form.submit();">
+					<option>All</option>
+					% for site in sites: 
+						<option
+							% if origin == site[0]:
+								selected="selected"
+							% endif					
+							value="${site[0]}">${site[0]}</option>
+					% endfor
+				</select>
+			</label>
+			<label> Date From: 
+			<div class="input-append date" id="dateFromDiv" data-date="${dateFrom}" data-date-format="yyyy-mm-dd">
+				<input name="dateFrom" class="span2" size="16" type="text" value="${dateFrom}">
+				<span class="add-on"><i class="icon-th"></i></span>
+			</div>
+			</label>
+			<label> Date To:
+			<div class="input-append date" id="dateToDiv" data-date="${dateTo}" data-date-format="yyyy-mm-dd">
+				<input name="dateTo" class="span2" size="16" type="text" value="${dateTo}">
+				<span class="add-on"><i class="icon-th"></i></span>
+			</div>
+			</label>
+			<a id="refresh" class="btn" onclick="document.filter_form.submit();" href="#"><i class="icon-refresh"></i></a>
+			<br/>
+			</form>
+			
+			
+			<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th># Sent by PoC</th>
+					<th># Received by HIM</th>
+				</tr>
+			</thead>
+			<tbody>
+				% for row in rows:
+					<tr>
+						<td>${row[0]}</td>
+						<td>${row[3]}</td>
+						<td>${row[2]}</td>
+					</tr>
+				% endfor
+			</tbody>
+		</table>
+			
 		
 	</div>
 	<!-- /container -->

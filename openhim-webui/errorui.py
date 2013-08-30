@@ -64,10 +64,21 @@ servport = int(config.get('Server Parameters', 'port'))
 
 monitoring_num_days = 7
 translist_num_days = 7
+report_num_days = 7
 datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
+
+def getSites():
+    conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+    cursor = conn.cursor ()
+    sites = {}   
+    sitesSql = "SELECT name FROM `sites`";
+    cursor.execute(sitesSql)
+    sites = cursor.fetchall()
+    cursor.close()
+    return sites
 
 class TransList(object):
     
@@ -312,6 +323,55 @@ class Monitor(object):
                            updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
                            username=getUsername(), monitoring_num_days=monitoring_num_days) 
 
+
+
+class Reports(object):
+
+    @cherrypy.expose
+    @require()
+    def index(self, dateFrom=None, dateTo=None, origin=None):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor ()
+
+        now = datetime.datetime.now().strftime('%Y-%m-%d')
+        seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=translist_num_days)).strftime('%Y-%m-%d')
+
+        if dateFrom is None or not datePattern.match(dateFrom):
+            dateFrom = seven_days_ago
+        if dateTo is None or not datePattern.match(dateTo):
+            dateTo = now
+
+        receivedClause = "recieved_timestamp>='" + dateFrom + " 00:00:00' and recieved_timestamp<='" + dateTo + " 23:59:59'"
+        sql = "SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE " + receivedClause
+        
+        sqlhim = "SELECT COUNT(id) as him_value, DATE(tl.recieved_timestamp) as date FROM transaction_log tl WHERE DATE(tl.recieved_timestamp) >= '" + dateFrom + "' AND DATE(tl.recieved_timestamp) <= '" + dateTo + "'"
+        sqlpoc = "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_value, r.report_date as date FROM data_element de, indicator i, report r WHERE de.name = 'totalTransactions' AND r.report_date >= '" + dateFrom + "' AND r.report_date <= '" + dateTo + "' AND de.indicator_id = i.id AND i.report_id = r.id"
+
+        if origin is not None and origin != "All" and origin != "all":
+            sqlhim += (" AND ("
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*'"
+                ")") % (origin, origin, origin)
+
+        if origin is not None and origin != "All" and origin != "all":
+            sqlpoc = "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_value, r.report_date as date FROM data_element de, indicator i, report r, sites s WHERE de.name = 'totalTransactions' AND r.report_date >= '" + dateFrom + "' AND r.report_date <= '" + dateTo + "' AND de.indicator_id = i.id AND i.report_id = r.id"
+            sqlpoc += (" AND r.site = s.id AND s.name = '%s' ") % (origin)
+
+
+        sql = "SELECT him.date, data_element, him_value, poc_value FROM (" + sqlhim + " GROUP BY DATE(tl.recieved_timestamp)) as him LEFT JOIN (" + sqlpoc + " GROUP BY r.report_date) as poc on him.date = poc.date;"
+        
+        print(sql)
+        
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+
+        cursor.close()
+
+        tmpl = lookup.get_template('reports.html')
+        return tmpl.render(sites=getSites(), username=getUsername(), rows=rows, dateFrom=dateFrom, dateTo=dateTo, origin=origin, report_num_days=report_num_days, now=now)
+
 class About(object):
     
     @cherrypy.expose
@@ -325,6 +385,7 @@ class Root(object):
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
+    reports = Reports()
     about = About()
     auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
     
