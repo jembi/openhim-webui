@@ -438,10 +438,10 @@ class Reports(object):
                 "GROUP BY r.report_date "
             ) % (dateFrom, dateTo)
         
-        sql = ("SELECT dates.date as date, data_element, poc_sent_value, him_received_value, "
-            "(poc_sent_value - him_received_value) as him_not_received_value, "
-            "him_success_value, CAST((him_success_value / (him_success_value + IFNULL(him_no_success_value,0)) * 100) AS UNSIGNED) as him_success_ratio, "
-            "him_no_success_value, CAST((him_no_success_value / (IFNULL(him_success_value,0) + him_no_success_value) * 100) AS UNSIGNED) as him_no_success_ratio "
+        sql = ("SELECT dates.date as date, data_element, IFNULL(poc_sent_value,0), IFNULL(him_received_value,0), "
+            "IFNULL((poc_sent_value - him_received_value),0) as him_not_received_value, "
+            "IFNULL(him_success_value,0), CAST((him_success_value / (him_success_value + IFNULL(him_no_success_value,0)) * 100) AS UNSIGNED) as him_success_ratio, "
+            "IFNULL(him_no_success_value,0), CAST((him_no_success_value / (IFNULL(him_success_value,0) + him_no_success_value) * 100) AS UNSIGNED) as him_no_success_ratio "
             "FROM "
             "( %s ) as dates "
             "LEFT JOIN "
