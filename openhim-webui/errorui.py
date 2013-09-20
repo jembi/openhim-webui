@@ -473,8 +473,7 @@ class About(object):
     def index(self):
         tmpl = lookup.get_template('about.html')
         return tmpl.render(username=getUsername())
-    
-    
+
 class Root(object):
     translist = TransList()
     transview = TransView()

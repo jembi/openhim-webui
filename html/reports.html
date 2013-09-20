@@ -1,8 +1,5 @@
-<!DOCTYPE html>
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-   - License, v. 2.0. If a copy of the MPL was not distributed with this
-   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="eng">
 <head>
 <meta charset="utf-8">
 <title>HIM - Error Management Console</title>
@@ -15,6 +12,7 @@
 <script src="../js/jquery.min.js"></script>
 <script src="../js/bootstrap.min.js"></script>
 <script src="../js/bootstrap-datepicker.js"></script>
+
 
 <script>
 	$(document).ready(function() {
@@ -74,6 +72,35 @@ body {
 	href="ico/apple-touch-icon-72-precomposed.png">
 <link rel="apple-touch-icon-precomposed"
 	href="ico/apple-touch-icon-57-precomposed.png">
+<script type="text/javascript" src="//www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+    <script type="text/javascript">
+      function drawVisualization() {
+        // Create and populate the data table.
+        var data = google.visualization.arrayToDataTable([
+          ['Date','Sent by PoC','Received by HIM','Not Received by HIM','Processed Successfully','Not Processed Successfully'],
+          % for row in rows:
+          ['${row[0]}',${row[2]},${row[3]},${row[4]},${row[5]},${row[7]}],
+          % endfor
+          
+        ]);
+      
+        // Create and draw the visualization.
+        new google.visualization.BarChart(document.getElementById('visualization')).
+            draw(data,
+                 {title:"Charts",
+                  width:600, height:400,
+                  vAxis: {title: "Dates"},
+                  hAxis: {title: "Messages"}}
+            );
+      }
+      
+
+      google.setOnLoadCallback(drawVisualization);
+    </script>
+    
 </head>
 
 <body>
@@ -178,6 +205,8 @@ body {
 			
 		
 	</div>
+
+	<div id="visualization" style="width: 900px; height: 500px;"></div>
 	<!-- /container -->
 
 </body>
