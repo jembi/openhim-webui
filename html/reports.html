@@ -79,13 +79,22 @@ body {
     <script type="text/javascript">
       function drawVisualization() {
         // Create and populate the data table.
-        var data = google.visualization.arrayToDataTable([
-          ['Date','Sent by PoC','Received by HIM','Not Received by HIM','Processed Successfully','Not Processed Successfully'],
-          % for row in rows:
-          ['${row[0]}',${row[2]},${row[3]},${row[4]},${row[5]},${row[7]}],
-          % endfor
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Date'); // Implicit domain label col.
+		data.addColumn('number', 'Sent By PoC');
+		data.addColumn('number', 'Received by HIM');
+		data.addColumn('number', 'Not Received by HIM');
+		data.addColumn('number', 'Processed Successfully');
+		data.addColumn({type:'string', role:'tooltip'});
+		data.addColumn('number', 'Not Processed Successfully');
+		data.addColumn({type:'string', role:'tooltip'});
+		//data.addColumn
+		
+			          % for row in rows:
+			          data.addRow(['${row[0]}',${row[2]},${row[3]},${row[4]},${row[5]},'${row[6]}%',${row[7]},'${row[8]}%']);
+			          % endfor
           
-        ]);
+       
       
         // Create and draw the visualization.
         new google.visualization.BarChart(document.getElementById('visualization')).
@@ -93,8 +102,27 @@ body {
                  {title:"Charts",
                   width:600, height:400,
                   vAxis: {title: "Dates"},
-                  hAxis: {title: "Messages"}}
+                  hAxis: {title: "Messages"},
+              	  isStacked: true}
             );
+        //new chart
+        var dat = new google.visualization.arrayToDataTable([
+          ['Date','Received by HIM','Not Received by HIM'],
+          % for row in rows:
+          ['${row[0]}',${row[3]},${row[4]}],
+          % endfor
+          
+        ]);
+      
+        // Create and draw the visualization.
+        new google.visualization.BarChart(document.getElementById('vizual')).
+            draw(dat,
+                 {title:"Charts",
+                  width:600, height:400,
+                  vAxis: {title: "Dates"},
+                  hAxis: {title: "Messages"},
+              	  isStacked: true}
+            );    
       }
       
 
@@ -205,8 +233,9 @@ body {
 			
 		
 	</div>
-
-	<div id="visualization" style="width: 900px; height: 500px;"></div>
+	<div id="container" style="width: 900px; height: 500px;">
+	<div id="visualization" style="width: 400px; floating:left"></div><div id="vizual" style="width: 400px; floating:left"></div>
+</div>
 	<!-- /container -->
 
 </body>
