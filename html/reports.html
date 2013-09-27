@@ -95,12 +95,12 @@ body {
        
       	
         // Create and draw the visualization.
-        new google.visualization.BarChart(document.getElementById('visualization')).draw(data,
+        new google.visualization.ColumnChart(document.getElementById('visualization')).draw(data,
                  {title:"Charts",
                   width:600, height:400,
                   vAxis: {title: "Dates"},
                   hAxis: {title: "Messages"},
-              	  isStacked: true}
+              	  isStacked: false}
             );
     }
     function drawVisual() {
@@ -121,12 +121,12 @@ body {
        
       	
         // Create and draw the visualization.
-        new google.visualization.BarChart(document.getElementById('visual')).draw(dat,
+        new google.visualization.ColumnChart(document.getElementById('visual')).draw(dat,
                  {title:"Charts 2",
                   width:600, height:400,
                   vAxis: {title: "Dates"},
                   hAxis: {title: "Messages"},
-              	  isStacked: true}
+              	  isStacked: false}
             );
     }
 
