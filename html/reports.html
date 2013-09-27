@@ -78,12 +78,10 @@ body {
     </script>
     <script type="text/javascript">
       function drawVisualization() {
-        // Create and populate the data table.
+        // Create and populate the data table for visualization.
         var data = new google.visualization.DataTable();
         data.addColumn('string', 'Date'); // Implicit domain label col.
 		data.addColumn('number', 'Sent By PoC');
-		data.addColumn('number', 'Received by HIM');
-		data.addColumn('number', 'Not Received by HIM');
 		data.addColumn('number', 'Processed Successfully');
 		data.addColumn({type:'string', role:'tooltip'});
 		data.addColumn('number', 'Not Processed Successfully');
@@ -91,27 +89,73 @@ body {
 		//data.addColumn
 		
 			          % for row in rows:
-			          data.addRow(['${row[0]}',${row[2]},${row[3]},${row[4]},${row[5]},'${row[6]}%',${row[7]},'${row[8]}%']);
+			          data.addRow(['${row[0]}',${row[2]},${row[5]},'${row[6]}%',${row[7]},'${row[8]}%']);
 			          % endfor
           
        
-      
+      	
         // Create and draw the visualization.
-        new google.visualization.BarChart(document.getElementById('visualization')).
-            draw(data,
+        new google.visualization.BarChart(document.getElementById('visualization')).draw(data,
                  {title:"Charts",
                   width:600, height:400,
                   vAxis: {title: "Dates"},
                   hAxis: {title: "Messages"},
               	  isStacked: true}
             );
+    }
+    function drawVisual() {
+        // Create and populate the data table for visualization.
+        var dat = new google.visualization.DataTable();
+        dat.addColumn('string', 'Date'); // Implicit domain label col.
+		dat.addColumn('number', 'Sent By PoC');
+		dat.addColumn('number', 'Processed Successfully');
+		dat.addColumn({type:'string', role:'tooltip'});
+		dat.addColumn('number', 'Not Processed Successfully');
+		dat.addColumn({type:'string', role:'tooltip'});
+		//data.addColumn
+		
+			          % for row in rows:
+			          data.addRow(['${row[0]}',${row[2]},${row[5]},'${row[6]}%',${row[7]},'${row[8]}%']);
+			          % endfor
           
-      }
+       
+      	
+        // Create and draw the visualization.
+        new google.visualization.BarChart(document.getElementById('visual')).draw(dat,
+                 {title:"Charts 2",
+                  width:600, height:400,
+                  vAxis: {title: "Dates"},
+                  hAxis: {title: "Messages"},
+              	  isStacked: true}
+            );
+    }
+
+    function drawAllVisual() {
+    	drawVisualization();
+    	drawVisual();
+    }
+          
+   
       
 
-      google.setOnLoadCallback(drawVisualization);
+      google.setOnLoadCallback(drawAllVisual);
     </script>
-    
+  	<script>
+  $(function() {
+    $( "#visualization" ).dialog({
+      height: 140,
+      modal: true
+    });
+  });
+  </script>
+      <script type="text/javascript">
+      
+          
+   
+      
+
+      google.setOnLoadCallback(drawVisual);
+    </script>
 </head>
 
 <body>
@@ -216,10 +260,33 @@ body {
 			
 		
 	</div>
-	<div id="container" style="width: 900px; height: 500px;">
-	<div id="visualization" style="width: 400px; floating:left"></div><div id="vizual" style="width: 400px; floating:left"></div>
-</div>
-	<!-- /container -->
+	<div  style="width: 900px; height: 500px;">
+		<a href="#myModal" role="button" class="btn" data-toggle="modal">View Chart</a></div>
+ 
+<!-- Modal -->
+	<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  style="width: 900px; height:500px">
+		<ul class="nav nav-tabs" id="tabContent">
+	       <li class="active"><a href="#details" data-toggle="tab">Processed / Failed</a></li>
+	       <li><a href="#received" data-toggle="tab">Received / sent</a></li>
+	    </ul>
+  
+      	<div class="tab-content">
+      
+	        <div class="tab-pane active" id="details">
+	          <div id="visualization"></div>
+	        </div>
+	        
+	        <div class="tab-pane" id="received">
+	          <div id="visual"></div>
+	        </div>
+        
+      	</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+	
+	
 
 </body>
 </html>
