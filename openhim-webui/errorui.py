@@ -466,6 +466,13 @@ class Reports(object):
         tmpl = lookup.get_template('reports.html')
         return tmpl.render(sites=getSites(), username=getUsername(), rows=rows, dateFrom=dateFrom, dateTo=dateTo, origin=origin, report_num_days=report_num_days, now=now)
 
+class Visualizer(object):
+    @cherrypy.expose
+    @require()
+    def index(self):
+        tmpl = lookup.get_template('visualizer.html')
+        return tmpl.render(username=getUsername())
+
 class About(object):
     
     @cherrypy.expose
@@ -479,6 +486,7 @@ class Root(object):
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
+    visualizer = Visualizer()
     reports = Reports()
     about = About()
     auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
