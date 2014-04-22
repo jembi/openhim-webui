@@ -34,6 +34,82 @@ body {
 	href="ico/apple-touch-icon-72-precomposed.png">
 <link rel="apple-touch-icon-precomposed"
 	href="ico/apple-touch-icon-57-precomposed.png">
+
+<!-- D3 -->
+<script src="../js/d3.min.js"></script>
+<script type="text/javascript">
+var registries = [
+	{ comp: "cr", desc: "Client Registry" },
+	{ comp: "dhis", desc: "DHIS2" },
+	{ comp: "sub", desc: "Subscription Database" }
+];
+
+var visW = 900, visH = 400;
+var pad = 20;
+
+var himX = 0 + pad,
+	himY = visH/2.0,
+	himW = visW - 2.0*pad,
+	himH = visH/4.0 - 2.0*pad;
+
+
+function setupBasicComponent(compRect, compText, x, y, w, h, text) {
+	compRect
+		.attr("rx", 6)
+		.attr("ry", 6)
+		.attr("x", x)
+		.attr("y", y)
+		.attr("width", w)
+		.attr("height", h)
+		.style("fill", "#ccc");
+	compText
+		.attr("x", x + w/2.0)
+		.attr("y", y + h/2.0)
+		.attr("text-anchor", "middle")
+		.text(text)
+		.style("fill", "#000");
+}
+
+function setupRegistryComponent(compRect, compText, compConnector, index, text) {
+	var compW = visW/registries.length - 2.0*pad,
+		compH = visH/4.0 - 2.0*pad;
+	var compX = index*compW + pad + index*pad*2.0,
+		compY = 0 + pad;
+
+	setupBasicComponent(compRect, compText, compX, compY, compW, compH, text);
+
+	compConnector
+		.attr("x1", compX + compW/2.0)
+		.attr("y1", compY + compH)
+		.attr("x2", compX + compW/2.0)
+		.attr("y2", himY)
+		.style("stroke-width", visW/150.0)
+		.style("stroke", "#ddd");
+}
+
+$(function() {
+	var vis = d3.select("#visualizer")
+		.append("svg:svg")
+		.attr("width", visW)
+		.attr("height", visH);
+
+	var himRect = vis.append("svg:rect");
+	var himText = vis.append("svg:text");
+	setupBasicComponent(himRect, himText, himX, himY, himW, himH, "Health Information Mediator");
+
+	for (var i=0; i<registries.length; i++) {
+		registries[i].rect = vis.append("svg:rect");
+		registries[i].text = vis.append("svg:text");
+		registries[i].line = vis.append("svg:line");
+		setupRegistryComponent(registries[i].rect, registries[i].text, registries[i].line, i, registries[i].desc);
+	}
+
+	//setInterval( function() {
+	//	$.getJSON("state").done(function(data) {
+	//	});
+	//}, 100);
+});
+</script>
 </head>
 
 <body>
@@ -71,7 +147,7 @@ body {
 	</div>
 
 	<div class="container">
-		<img src="http://www.pluspets.net/wp-content/uploads/2010/03/Sun-bear2.jpg" />
+		<div id="visualizer"/>
 	</div>
 	<!-- /container -->
 

@@ -468,6 +468,10 @@ class Reports(object):
 
 class Visualizer(object):
     @cherrypy.expose
+    def state(self):
+        return "{ \"him\": true, \"cr\": true, \"dhis\": false, \"sub\": false }"
+
+    @cherrypy.expose
     @require()
     def index(self):
         tmpl = lookup.get_template('visualizer.html')
