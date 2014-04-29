@@ -36,15 +36,6 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 config = ConfigParser.RawConfigParser();
 
-#config.add_section('Database Parameters')
-#config.set('Database Parameters', 'dbhost', 'localhost')
-#config.set('Database Parameters', 'dbuser', 'root')
-#config.set('Database Parameters', 'dbpasswd', 'Jembi1')
-#config.set('Database Parameters', 'dbname', 'interoperability_layer')
-
-#with open(current_dir + '/resources' + '/database.cfg', 'wb') as configfile:
-#    config.write(configfile)
-
 config.read(current_dir + '/resources' + '/database.cfg')
 dbhost = config.get('Database Parameters','dbhost')
 dbport = int(config.get('Database Parameters','dbport'))
@@ -64,10 +55,21 @@ servport = int(config.get('Server Parameters', 'port'))
 
 monitoring_num_days = 7
 translist_num_days = 7
+report_num_days = 7
 datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
+
+def getSites():
+    conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+    cursor = conn.cursor ()
+    sites = {}   
+    sitesSql = "SELECT implementation_id, name FROM `sites`";
+    cursor.execute(sitesSql)
+    sites = cursor.fetchall()
+    cursor.close()
+    return sites
 
 class TransList(object):
     
@@ -159,7 +161,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin, sites=getSites())
 
     
 class TransView():
@@ -312,6 +314,149 @@ class Monitor(object):
                            updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
                            username=getUsername(), monitoring_num_days=monitoring_num_days) 
 
+
+
+class Reports(object):
+
+    @cherrypy.expose
+    @require()
+    def index(self, dateFrom=None, dateTo=None, origin=None):
+        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        cursor = conn.cursor ()
+
+        now = datetime.datetime.now().strftime('%Y-%m-%d')
+        seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=translist_num_days)).strftime('%Y-%m-%d')
+
+        if dateFrom is None or not datePattern.match(dateFrom):
+            dateFrom = seven_days_ago
+        if dateTo is None or not datePattern.match(dateTo):
+            dateTo = now
+
+        sqldates = (
+                "SELECT * FROM"
+                "("
+                "  select '%s' + INTERVAL (a.a + (10 * b.a) + (100 * c.a)) DAY as date "
+                "from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a "
+                "cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b "
+                "cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c "
+                ") a WHERE a.date >= '%s' "
+                "AND a.date <= '%s'"
+                ) % (dateFrom, dateFrom, dateTo)
+
+
+        if origin is not None and origin != "All" and origin != "all":
+            sqlhim = (
+                "SELECT COUNT(id) as him_received_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                " AND ( "
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
+                ") "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo, origin, origin, origin)
+            sqlhimsuccess = (
+                "SELECT COUNT(id) as him_success_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                "AND status = 2 "
+                " AND ( "
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
+                ") "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo, origin, origin, origin)
+            sqlhimnosuccess = (
+                "SELECT COUNT(id) as him_no_success_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                "AND status != 2 "
+                " AND ( "
+                "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
+                "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
+                "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
+                ") "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo, origin, origin, origin)
+            sqlpoc = (
+                "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_sent_value, r.report_date as date "
+                "FROM data_element de, indicator i, report r, sites s "
+                "WHERE de.name = 'totalTransactions' "
+                "AND r.report_date >= '%s' "
+                "AND r.report_date <= '%s' "
+                "AND de.indicator_id = i.id "
+                "AND i.report_id = r.id "
+                "AND r.site = s.id AND s.name = '%s' "
+                "GROUP BY r.report_date "
+            ) % (dateFrom, dateTo, origin)
+        else:
+            sqlhim = (
+                "SELECT COUNT(id) as him_received_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo)
+            sqlhimsuccess = (
+                "SELECT COUNT(id) as him_success_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                "AND status = 2 "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo)
+            sqlhimnosuccess = (
+                "SELECT COUNT(id) as him_no_success_value, DATE(tl.recieved_timestamp) as date "
+                "FROM transaction_log tl "
+                "WHERE DATE(tl.recieved_timestamp) >= '%s' "
+                "AND DATE(tl.recieved_timestamp) <= '%s' "
+                "AND status != 2 "
+                "GROUP BY DATE(tl.recieved_timestamp) "
+            ) % (dateFrom, dateTo)
+            sqlpoc = (
+                "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_sent_value, r.report_date as date "
+                "FROM data_element de, indicator i, report r "
+                "WHERE de.name = 'totalTransactions' "
+                "AND r.report_date >= '%s' "
+                "AND r.report_date <= '%s' "
+                "AND de.indicator_id = i.id "
+                "AND i.report_id = r.id "
+                "GROUP BY r.report_date "
+            ) % (dateFrom, dateTo)
+        
+        sql = ("SELECT dates.date as date, data_element, IFNULL(poc_sent_value,0), IFNULL(him_received_value,0), "
+            "IFNULL((poc_sent_value - him_received_value),0) as him_not_received_value, "
+            "IFNULL(him_success_value,0), CAST((him_success_value / (him_success_value + IFNULL(him_no_success_value,0)) * 100) AS UNSIGNED) as him_success_ratio, "
+            "IFNULL(him_no_success_value,0), CAST((him_no_success_value / (IFNULL(him_success_value,0) + him_no_success_value) * 100) AS UNSIGNED) as him_no_success_ratio "
+            "FROM "
+            "( %s ) as dates "
+            "LEFT JOIN "
+            "( %s ) as him on dates.date = him.date "
+            "LEFT JOIN "
+            "( %s ) as him_success on him.date = him_success.date "
+            "LEFT JOIN "
+            "( %s ) as him_no_success on him.date = him_no_success.date "
+            "LEFT JOIN "
+            "( %s ) as poc on him.date = poc.date "
+            "ORDER BY dates.date ASC;"
+            ) % (sqldates, sqlhim, sqlhimsuccess, sqlhimnosuccess, sqlpoc)
+
+        print(sql)
+        
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+
+        cursor.close()
+
+        tmpl = lookup.get_template('reports.html')
+        return tmpl.render(sites=getSites(), username=getUsername(), rows=rows, dateFrom=dateFrom, dateTo=dateTo, origin=origin, report_num_days=report_num_days, now=now)
+
 class About(object):
     
     @cherrypy.expose
@@ -325,6 +470,7 @@ class Root(object):
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
+    reports = Reports()
     about = About()
     auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
     
