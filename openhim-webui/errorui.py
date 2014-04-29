@@ -36,15 +36,6 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 config = ConfigParser.RawConfigParser();
 
-#config.add_section('Database Parameters')
-#config.set('Database Parameters', 'dbhost', 'localhost')
-#config.set('Database Parameters', 'dbuser', 'root')
-#config.set('Database Parameters', 'dbpasswd', 'Jembi1')
-#config.set('Database Parameters', 'dbname', 'interoperability_layer')
-
-#with open(current_dir + '/resources' + '/database.cfg', 'wb') as configfile:
-#    config.write(configfile)
-
 config.read(current_dir + '/resources' + '/database.cfg')
 dbhost = config.get('Database Parameters','dbhost')
 dbport = int(config.get('Database Parameters','dbport'))
