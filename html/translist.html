@@ -97,7 +97,6 @@ TS = "TS"
 SHR = "SHR"
 HIM = "HIM"
 
-sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Musha"), ("363", "Ruhunda"),("364","Rwamagana HC"),("359","Nyagasambu"),("361","Nzige"),("358","Muyumbu"),("362","Rubona"),("497","Gahengeri"),("585","Murambi"),("356","Munyaga"),("360","Nyakaliro"),("365","Rwamagana Hospital")]
 %>
 
 <body>
@@ -260,7 +259,7 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 					<option>All</option>
 					% for site in sites:
 						<option
-							% if origin == site[0]:
+							% if origin == str(site[0]):
 								selected="selected"
 							% endif					
 							value="${site[0]}">${site[1]} (${site[0]})</option>
