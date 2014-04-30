@@ -26,10 +26,10 @@ lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/
 
 endpoints = {
     'savePatientEncounter': ('Save Patient Encounter', "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='POST'"),
-    'queryForPreviousPatientEncounters': ('Query for previous patient encounters', "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"),
+    'queryForPreviousPatientEncounters': ('Query for Previous Patient Encounters', "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"),
     'getPatientEncounter': ('Get Patient Encounter', "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http_method='GET'"),
-    'registerNewClient': ('Register new client', "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"),
-    'queryForClient': ('Query for clients', "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"),
+    'registerNewClient': ('Register New Client', "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"),
+    'queryForClient': ('Query for Clients', "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"),
     'getClient': ('Get Client', "path RLIKE 'ws/rest/v1/patient/.*' AND path NOT RLIKE '.*encounters' AND http_method='GET'"),
     'updateClientRecord': ('Update Client Record', "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"),
     'queryForHCFacilities': ('Query for HC Facilities', "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"),
@@ -157,7 +157,7 @@ class TransList(object):
         conn.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin, sites=getSites())
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin, sites=getSites(), endpoints=endpoints)
 
     
 class TransView():
