@@ -11,7 +11,7 @@ import os.path
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
-from auth import AuthController, require, member_of, name_is, SESSION_KEY
+from auth import AuthController, require, member_of, name_is, SESSION_KEY, USER_FILTERS
 import datetime
 import re
 import ConfigParser
@@ -63,6 +63,9 @@ def getMySQLConn():
 
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
+
+def getUserFilters():
+    return cherrypy.session.get(USER_FILTERS, None)
 
 def getSites():
     conn = getMySQLConn()
@@ -129,6 +132,10 @@ class TransList(object):
             whereClauses.append(GET_FAC_WHERE_CLAUSE)
         elif endpoint == 'postAlert':
             whereClauses.append(ALERT_WHERE_CLAUSE)
+
+        filters = getUserFilters()
+        if filters.hasEndpointFilter():
+            whereClauses.append("path RLIKE '" + filters.getEndpointFilter() + "'")
             
         whereClauses.append("rerun IS NOT true")
             
@@ -185,8 +192,16 @@ class TransView():
         cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = " + id + ";")
         row = cursor.fetchone()
         cursor.close()        
-        tmpl = lookup.get_template('transview.html')
-        return tmpl.render(row=row, username=getUsername(), max=max) 
+
+        if self.isAllowed(row[2]):
+            tmpl = lookup.get_template('transview.html')
+            return tmpl.render(row=row, username=getUsername(), max=max)
+        else:
+            raise cherrypy.HTTPError(403)
+        
+    def isAllowed(self, path):
+       filters = getUserFilters()
+       return filters.hasEndpointFilter() is False or re.match(filters.getEndpointFilter(), path)
     
     def toggleReviewed(self, id):
         conn = getMySQLConn()
