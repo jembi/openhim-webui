@@ -16,6 +16,7 @@
 
 import cherrypy
 import MySQLdb
+from contextlib import closing
 import hashlib
 
 SESSION_KEY = '_cp_username'
@@ -146,10 +147,10 @@ class AuthController(object):
 
     def getUsernameEntry(self, username):
         conn = MySQLdb.connect(host=self.dbhost, user=self.dbuser, passwd=self.dbpasswd, db=self.dbname)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM `users` WHERE username = '" + username + "';")
-        row = cursor.fetchone()
-        cursor.close()
+        with closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT * FROM `users` WHERE username = %s", (username))
+            row = cursor.fetchone()
+        conn.close()
         return row
 
     @cherrypy.expose
