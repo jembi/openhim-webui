@@ -24,16 +24,18 @@ from base64 import b64encode
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
 
-SAVE_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='POST'"
-QUERY_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"
-GET_ENC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http_method='GET'"
-REG_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"
-QUERY_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"
-GET_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND path NOT RLIKE '.*encounters' AND http_method='GET'"
-UPDATE_CLIENT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"
-QUERY_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"
-GET_FAC_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"
-ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
+endpoints = {
+    'savePatientEncounter': ('Save Patient Encounter', "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='POST'"),
+    'queryForPreviousPatientEncounters': ('Query for previous patient encounters', "path RLIKE 'ws/rest/v1/patient/.*/encounters' AND http_method='GET'"),
+    'getPatientEncounter': ('Get Patient Encounter', "path RLIKE 'ws/rest/v1/patient/.*/encounter/.*' AND http_method='GET'"),
+    'registerNewClient': ('Register new client', "path RLIKE 'ws/rest/v1/patients' AND http_method='POST'"),
+    'queryForClient': ('Query for clients', "path RLIKE 'ws/rest/v1/patients' AND http_method='GET'"),
+    'getClient': ('Get Client', "path RLIKE 'ws/rest/v1/patient/.*' AND path NOT RLIKE '.*encounters' AND http_method='GET'"),
+    'updateClientRecord': ('Update Client Record', "path RLIKE 'ws/rest/v1/patient/.*' AND http_method='PUT'"),
+    'queryForHCFacilities': ('Query for HC Facilities', "path RLIKE 'ws/rest/v1/facilities' AND http_method='GET'"),
+    'getHCFacility': ('Get HC Facility', "path RLIKE 'ws/rest/v1/facility/.*' AND http_method='GET'"),
+    'postAlert': ('Post Alert', "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'")
+}
 
 config = ConfigParser.RawConfigParser();
 
@@ -113,26 +115,8 @@ class TransList(object):
         if unreviewed == 'on':
             whereClauses.append("reviewed=0")
             
-        if endpoint == 'savePatientEncounter':
-            whereClauses.append(SAVE_ENC_WHERE_CLAUSE)
-        elif endpoint == 'queryForPreviousPatientEncounters':
-            whereClauses.append(QUERY_ENC_WHERE_CLAUSE)
-        elif endpoint == 'getPatientEncounter':
-            whereClauses.append(GET_ENC_WHERE_CLAUSE)
-        elif endpoint == 'registerNewClient':
-            whereClauses.append(REG_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'queryForClient':
-            whereClauses.append(QUERY_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'getClient':
-            whereClauses.append(GET_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'updateClientRecord':
-            whereClauses.append(UPDATE_CLIENT_WHERE_CLAUSE)
-        elif endpoint == 'queryForHCFacilities':
-            whereClauses.append(QUERY_FAC_WHERE_CLAUSE)
-        elif endpoint == 'getHCFacility':
-            whereClauses.append(GET_FAC_WHERE_CLAUSE)
-        elif endpoint == 'postAlert':
-            whereClauses.append(ALERT_WHERE_CLAUSE)
+        if endpoints.has_key(endpoint):
+            whereClauses.append(endpoints[endpoint][1])
 
         filters = getUserFilters()
         if filters.hasEndpointFilter():
@@ -315,21 +299,14 @@ class Monitor(object):
     @require()
     def index(self):
         totalStats = self.calculateStats();
-        saveEncStats = self.calculateStats(SAVE_ENC_WHERE_CLAUSE);
-        queryEncStats = self.calculateStats(QUERY_ENC_WHERE_CLAUSE);
-        regClientStats = self.calculateStats(REG_CLIENT_WHERE_CLAUSE);
-        queryClientStats = self.calculateStats(QUERY_CLIENT_WHERE_CLAUSE);
-        getClientStats = self.calculateStats(GET_CLIENT_WHERE_CLAUSE);
-        updateClientStats = self.calculateStats(UPDATE_CLIENT_WHERE_CLAUSE);
-        queryFacStats = self.calculateStats(QUERY_FAC_WHERE_CLAUSE);
-        getFacStats = self.calculateStats(GET_FAC_WHERE_CLAUSE);
-        alertStats = self.calculateStats(ALERT_WHERE_CLAUSE);
+        stats = []
+        for endpoint in endpoints.values():
+            stat = self.calculateStats(endpoint[1])
+            stat['description'] = endpoint[0]
+            stats.append(stat)
 
         tmpl = lookup.get_template('monitor.html')
-        return tmpl.render(totalStats=totalStats, saveEncStats=saveEncStats, queryEncStats=queryEncStats,
-                           regClientStats=regClientStats, queryClientStats=queryClientStats, getClientStats=getClientStats, 
-                           updateClientStats=updateClientStats, queryFacStats=queryFacStats, getFacStats=getFacStats, alertStats=alertStats, 
-                           username=getUsername(), monitoring_num_days=monitoring_num_days) 
+        return tmpl.render(totalStats=totalStats, stats=stats, username=getUsername(), monitoring_num_days=monitoring_num_days) 
 
 
 
