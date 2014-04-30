@@ -60,6 +60,7 @@ monitoring_num_days = 7
 translist_num_days = 7
 report_num_days = 7
 datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
+intPattern = re.compile("\d+")
 
 def getMySQLConn():
     return MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname, use_unicode=True)
@@ -124,7 +125,7 @@ class TransList(object):
             
         whereClauses.append("rerun IS NOT true")
             
-        if origin is not None and origin != "All" and origin != "all":
+        if origin is not None and origin != "All" and origin != "all" and intPattern.match(origin):
             whereClauses.append(("("
                 "request_params RLIKE '.*[Ee][Ll][Ii][Dd]=%s.*' or "
                 "body RLIKE '.*<HD\.1>%s</HD\.1>.*' or "
@@ -337,7 +338,7 @@ class Reports(object):
                     ) % (dateFrom, dateFrom, dateTo)
 
 
-            if origin is not None and origin != "All" and origin != "all":
+            if origin is not None and origin != "All" and origin != "all" and intPattern.match(origin):
                 sqlhim = (
                     "SELECT COUNT(id) as him_received_value, DATE(tl.recieved_timestamp) as date "
                     "FROM transaction_log tl "
@@ -384,7 +385,7 @@ class Reports(object):
                     "AND r.report_date <= '%s' "
                     "AND de.indicator_id = i.id "
                     "AND i.report_id = r.id "
-                    "AND r.site = s.id AND s.name = '%s' "
+                    "AND r.site = s.id AND s.implementation_id = '%s' "
                     "GROUP BY r.report_date "
                 ) % (dateFrom, dateTo, origin)
             else:
