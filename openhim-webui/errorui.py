@@ -13,6 +13,7 @@ from mako.lookup import TemplateLookup
 import MySQLdb
 from auth import AuthController, require, member_of, name_is, SESSION_KEY
 import datetime
+import time
 import re
 import ConfigParser
 from ndg.httpsclient.https import HTTPSConnection
@@ -462,8 +463,28 @@ class Reports(object):
 
 class Visualizer(object):
     @cherrypy.expose
-    def state(self):
-        return "{ \"him\": true, \"cr\": true, \"dhis\": false, \"sub\": false }"
+    @require()
+    def sync(self):
+        return "{ \"time\": %d }" % int(round(time.time()*1000))
+
+    @cherrypy.expose
+    @require()
+    def latest(self, receivedTime):
+        return """[ { \"ts\": \"20140502130000000\", \"comp\": \"him\", \"ev\": \"start\" },
+        { \"ts\": \"20140502130000100\", \"comp\": \"cr\", \"ev\": \"start\" },
+        { \"ts\": \"20140502130000300\", \"comp\": \"cr\", \"ev\": \"end\" },
+        { \"ts\": \"20140502130000400\", \"comp\": \"dhis\", \"ev\": \"start\" },
+        { \"ts\": \"20140502130000600\", \"comp\": \"dhis\", \"ev\": \"end\" },
+        { \"ts\": \"20140502130000700\", \"comp\": \"sub\", \"ev\": \"start\" },
+        { \"ts\": \"20140502130000900\", \"comp\": \"sub\", \"ev\": \"end\" },
+        { \"ts\": \"20140502130001000\", \"comp\": \"him\", \"ev\": \"end\" }
+        ]
+        """
+
+    @cherrypy.expose
+    @require()
+    def period(self, fromTime, toTime):
+        return "[]"
 
     @cherrypy.expose
     @require()

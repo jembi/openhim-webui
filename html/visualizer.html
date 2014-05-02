@@ -54,6 +54,14 @@ var himX = 0 + pad,
 	himW = visW - 2.0*pad,
 	himH = visH/4.0 - 2.0*pad;
 
+var inactiveColor = "#ccc",
+	activeColor = "#555";
+
+var visualizerUpdateInterval;
+//How often to fetch updates from the server (in millis)
+var updatePeriod = 200;
+var diffTime;
+
 
 function setupBasicComponent(compRect, compText, x, y, w, h, text) {
 	compRect
@@ -63,7 +71,7 @@ function setupBasicComponent(compRect, compText, x, y, w, h, text) {
 		.attr("y", y)
 		.attr("width", w)
 		.attr("height", h)
-		.style("fill", "#ccc");
+		.style("fill", inactiveColor);
 	compText
 		.attr("x", x + w/2.0)
 		.attr("y", y + h/2.0)
@@ -89,24 +97,66 @@ function setupRegistryComponent(compRect, compText, compConnector, index, text) 
 		.style("stroke", "#ddd");
 }
 
+function animateComp(comp, ev, delay) {
+	var color = (ev.toLowerCase() === "start" ? activeColor : inactiveColor);
+	comp
+		.transition()
+		.delay(delay)
+		.style("fill", color);
+}
 
-var visualizerUpdate;
+function getRegistryRect(name) {
+	for (var i=0; i<registries.length; i++) {
+		if (registries[i].comp.toLowerCase() === name.toLowerCase()) {
+			return registries[i].rect;
+		}
+	}
+	return null;
+}
 
 function play() {
 	$("#play").hide();
 	$("#pause").show();
 
-	visualizerUpdate = setInterval( function() {
-		$.getJSON("state").done(function(data) {
-			himRect.transition().style("fill", "#555");
+	visualizerUpdateInterval = setInterval( function() {
+		$.getJSON(
+			"latest",
+			{ receivedTime: (Date.now()-diffTime) }
+		).done(function(data) {
+			if (data.length === 0) return;
+
+			var baseTime = data[0].ts;
+
+			$.each(data, function(i, item) {
+				var compRect = null;
+
+				if (item.comp.toLowerCase() === "him") {
+					compRect = himRect;
+				} else {
+					compRect = getRegistryRect(item.comp);
+				}
+
+				if (compRect) {
+					animateComp(compRect, item.ev, item.ts-baseTime);
+				}
+			});
+		}).fail(function(jqxhr, textStatus, error) {
+			console.error("Error: " + textStatus + " " + error);
 		});
-	}, 1000);
+	}, updatePeriod);
 }
 
 function pause() {
 	$("#play").show();
 	$("#pause").hide();
-	clearInterval(visualizerUpdate);
+	clearInterval(visualizerUpdateInterval);
+}
+
+function sync() {
+	$.getJSON("sync").done(function(data) {
+		diffTime = Date.now() - data.time;
+		play();
+	});
 }
 
 $(function() {
@@ -126,7 +176,7 @@ $(function() {
 		setupRegistryComponent(registries[i].rect, registries[i].text, registries[i].line, i, registries[i].desc);
 	}
 
-	play();
+	sync();
 });
 </script>
 </head>
@@ -168,10 +218,10 @@ $(function() {
 	<div class="container">
 		<div id="controls" class="btn-toolbar">
 			<div class="btn-group">
-				<!--<a class="btn" href="#"><i class="icon-backward"></i></a>-->
+				<a class="btn" href="#"><i class="icon-backward"></i></a>
 				<a id="play" class="btn" href="#" onclick="play();"><i class="icon-play"></i></a>
 				<a id="pause" class="btn" href="#" onclick="pause();"><i class="icon-pause"></i></a>
-				<!--<a class="btn" href="#"><i class="icon-forward"></i></a>-->
+				<a class="btn" href="#"><i class="icon-forward"></i></a>
 			</div>
 		</div>
 		<div id="visualizer"/>
