@@ -42,6 +42,7 @@ body {
 import json
 %>
 var registries = ${json.dumps(conf['registries'])};
+var endpoints = ${json.dumps(conf['endpoints'])};
 
 var himRect, himText;
 
@@ -62,6 +63,26 @@ var updatePeriod = 200;
 var diffTime;
 
 
+function getRegistryRect(name) {
+	for (var i=0; i<registries.length; i++) {
+		if (registries[i].comp.toLowerCase() === name.toLowerCase()) {
+			return registries[i].rect;
+		}
+	}
+	return null;
+}
+
+function getEndpointText(name) {
+	for (var i=0; i<endpoints.length; i++) {
+		if (endpoints[i].comp.toLowerCase() === name.toLowerCase()) {
+			return endpoints[i].text;
+		}
+	}
+	return null;
+}
+
+/* Component Drawing */
+
 function setupBasicComponent(compRect, compText, x, y, w, h, text) {
 	compRect
 		.attr("rx", 6)
@@ -71,10 +92,13 @@ function setupBasicComponent(compRect, compText, x, y, w, h, text) {
 		.attr("width", w)
 		.attr("height", h)
 		.style("fill", inactiveColor);
+
+	var textSize = h/3.5;
 	compText
 		.attr("x", x + w/2.0)
-		.attr("y", y + h/2.0)
+		.attr("y", y + h/2.0 + textSize/2.0)
 		.attr("text-anchor", "middle")
+		.attr("font-size", textSize)
 		.text(text)
 		.style("fill", "#000");
 }
@@ -96,21 +120,60 @@ function setupRegistryComponent(compRect, compText, compConnector, index, text) 
 		.style("stroke", "#ddd");
 }
 
+function setupEndpointText(compText, index, text) {
+	var compW = visW/endpoints.length - 2.0*pad,
+		compH = (visH/4.0 - 2.0*pad) / 3.0;
+	var compX = index*compW + pad + index*pad*2.0,
+		compY = visH - pad;
+
+	compText
+		.attr("x", compX + compW/2.0)
+		.attr("y", compY)
+		.attr("text-anchor", "middle")
+		.attr("font-size", compH)
+		.text(text)
+		.style("fill", inactiveColor);
+}
+
+function setupHIM(vis) {
+	himRect = vis.append("svg:rect");
+	himText = vis.append("svg:text");
+	setupBasicComponent(himRect, himText, himX, himY, himW, himH, "Health Information Mediator");
+
+	vis.append("svg:rect")
+		.attr("rx", 6)
+		.attr("ry", 6)
+		.attr("x", 0 + pad)
+		.attr("y", visH*3.0/4.0)
+		.attr("width", visW - 2.0*pad)
+		.attr("height", visH/50.0)
+		.style("fill", inactiveColor);
+}
+
+function setupRegistries(vis) {
+	for (var i=0; i<registries.length; i++) {
+		registries[i].rect = vis.append("svg:rect");
+		registries[i].text = vis.append("svg:text");
+		registries[i].line = vis.append("svg:line");
+		setupRegistryComponent(registries[i].rect, registries[i].text, registries[i].line, i, registries[i].desc);
+	}
+}
+
+function setupEndpoints(vis) {
+	for (var i=0; i<endpoints.length; i++) {
+		endpoints[i].text = vis.append("svg:text");
+		setupEndpointText(endpoints[i].text, i, endpoints[i].desc);
+	}
+}
+
+/* Animation */
+
 function animateComp(comp, ev, delay) {
 	var color = (ev.toLowerCase() === "start" ? activeColor : inactiveColor);
 	comp
 		.transition()
 		.delay(delay)
 		.style("fill", color);
-}
-
-function getRegistryRect(name) {
-	for (var i=0; i<registries.length; i++) {
-		if (registries[i].comp.toLowerCase() === name.toLowerCase()) {
-			return registries[i].rect;
-		}
-	}
-	return null;
 }
 
 function play() {
@@ -127,16 +190,19 @@ function play() {
 			var baseTime = data[0].ts;
 
 			$.each(data, function(i, item) {
-				var compRect = null;
+				var comp = null;
 
 				if (item.comp.toLowerCase() === "him") {
-					compRect = himRect;
+					comp = himRect;
 				} else {
-					compRect = getRegistryRect(item.comp);
+					comp = getRegistryRect(item.comp);
+					if (comp == null) {
+						comp = getEndpointText(item.comp);
+					}
 				}
 
-				if (compRect) {
-					animateComp(compRect, item.ev, item.ts-baseTime);
+				if (comp) {
+					animateComp(comp, item.ev, item.ts-baseTime);
 				}
 			});
 		}).fail(function(jqxhr, textStatus, error) {
@@ -158,26 +224,22 @@ function sync() {
 	});
 }
 
+/* */
+
 $(function() {
 	var vis = d3.select("#visualizer")
 		.append("svg:svg")
 		.attr("width", visW)
 		.attr("height", visH);
 
-	himRect = vis.append("svg:rect");
-	himText = vis.append("svg:text");
-	setupBasicComponent(himRect, himText, himX, himY, himW, himH, "Health Information Mediator");
-
-	for (var i=0; i<registries.length; i++) {
-		registries[i].rect = vis.append("svg:rect");
-		registries[i].text = vis.append("svg:text");
-		registries[i].line = vis.append("svg:line");
-		setupRegistryComponent(registries[i].rect, registries[i].text, registries[i].line, i, registries[i].desc);
-	}
-
+	setupHIM(vis);
+	setupRegistries(vis);
+	setupEndpoints(vis);
 	sync();
 });
+
 </script>
+
 </head>
 
 <body>
@@ -215,15 +277,19 @@ $(function() {
 	</div>
 
 	<div class="container">
-		<div id="controls" class="btn-toolbar">
-			<div class="btn-group">
-				<a class="btn" href="#"><i class="icon-backward"></i></a>
-				<a id="play" class="btn" href="#" onclick="play();"><i class="icon-play"></i></a>
-				<a id="pause" class="btn" href="#" onclick="pause();"><i class="icon-pause"></i></a>
-				<a class="btn" href="#"><i class="icon-forward"></i></a>
+		<div class="row">
+			<div id="controls" class="btn-toolbar">
+				<div class="btn-group">
+					<a class="btn" href="#"><i class="icon-backward"></i></a>
+					<a id="play" class="btn" href="#" onclick="play();"><i class="icon-play"></i></a>
+					<a id="pause" class="btn" href="#" onclick="pause();"><i class="icon-pause"></i></a>
+					<a class="btn" href="#"><i class="icon-forward"></i></a>
+				</div>
 			</div>
 		</div>
-		<div id="visualizer"/>
+		<div class="row">
+			<div id="visualizer"/>
+		</div>
 	</div>
 	<!-- /container -->
 
