@@ -21,34 +21,33 @@
 
 		//date validation
 		//from http://www.eyecon.ro/bootstrap-datepicker/
-		//TODO the validation doesn't work correctly yet
-		//var startDate = new Date('${now}');
-		//var endDate = new Date('${now}');
+		var startDate = new Date('${dateFrom}');
+		var endDate = new Date('${dateTo}');
 
 		$('#dateFromDiv').datepicker()
 			.on('changeDate', function(ev){
-				//if (ev.date.valueOf() > endDate.valueOf()){
-				//	$('#alert').show().find('strong').text('The start date can not be greater then the end date');
-				//	$('#refresh').hide();
-				//} else {
-				//	$('#alert').hide();
-				//	startDate = new Date(ev.date);
-				//	$('#startDate').text($('#dateFromDiv').data('date'));
-				//	$('#refresh').show();
-				//}
+				if (ev.date.valueOf() > endDate.valueOf()){
+					$('#alert').show().find('strong').text('The start date can not be greater than the end date');
+					$('#refresh').hide();
+				} else {
+					$('#alert').hide();
+					startDate = new Date(ev.date);
+					$('#refresh').show();
+					document.filter_form.submit();
+				}
 				$('#dateFromDiv').datepicker('hide');
 		});
 		$('#dateToDiv').datepicker()
 			.on('changeDate', function(ev){
-				//if (ev.date.valueOf() < startDate.valueOf()){
-				//	$('#alert').show().find('strong').text('The end date can not be less then the start date');
-				//	$('#refresh').hide();
-				//} else {
-				//	$('#alert').hide();
-				//	endDate = new Date(ev.date);
-				//	$('#endDate').text($('#dateToDiv').data('date'));
-				//	$('#refresh').show();
-				//}
+				if (ev.date.valueOf() < startDate.valueOf()){
+					$('#alert').show().find('strong').text('The end date can not be less than the start date');
+					$('#refresh').hide();
+				} else {
+					$('#alert').hide();
+					endDate = new Date(ev.date);
+					$('#refresh').show();
+					document.filter_form.submit();
+				}
 				$('#dateToDiv').datepicker('hide');
 		});
 	});
@@ -97,7 +96,6 @@ TS = "TS"
 SHR = "SHR"
 HIM = "HIM"
 
-sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Musha"), ("363", "Ruhunda"),("364","Rwamagana HC"),("359","Nyagasambu"),("361","Nzige"),("358","Muyumbu"),("362","Rubona"),("497","Gahengeri"),("585","Murambi"),("356","Munyaga"),("360","Nyakaliro"),("365","Rwamagana Hospital")]
 %>
 
 <body>
@@ -261,7 +259,7 @@ sites = [("547", "Avega"), ("354", "Gishari"), ("355", "Karenge"), ("357", "Mush
 					<option>All</option>
 					% for site in sites:
 						<option
-							% if origin == site[0]:
+							% if origin == str(site[0]):
 								selected="selected"
 							% endif					
 							value="${site[0]}">${site[1]} (${site[0]})</option>

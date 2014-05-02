@@ -36,15 +36,6 @@ ALERT_WHERE_CLAUSE = "path RLIKE 'ws/rest/v1/alerts' AND http_method='POST'"
 
 config = ConfigParser.RawConfigParser();
 
-#config.add_section('Database Parameters')
-#config.set('Database Parameters', 'dbhost', 'localhost')
-#config.set('Database Parameters', 'dbuser', 'root')
-#config.set('Database Parameters', 'dbpasswd', 'Jembi1')
-#config.set('Database Parameters', 'dbname', 'interoperability_layer')
-
-#with open(current_dir + '/resources' + '/database.cfg', 'wb') as configfile:
-#    config.write(configfile)
-
 config.read(current_dir + '/resources' + '/database.cfg')
 dbhost = config.get('Database Parameters','dbhost')
 dbport = int(config.get('Database Parameters','dbport'))
@@ -67,14 +58,17 @@ translist_num_days = 7
 report_num_days = 7
 datePattern = re.compile("\d{4}-\d{1,2}-\d{1,2}")
 
+def getMySQLConn():
+    return MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname, use_unicode=True)
+
 def getUsername():
     return cherrypy.session.get(SESSION_KEY, None)
 
 def getSites():
-    conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+    conn = getMySQLConn()
     cursor = conn.cursor ()
     sites = {}   
-    sitesSql = "SELECT name FROM `sites`";
+    sitesSql = "SELECT implementation_id, name FROM `sites`";
     cursor.execute(sitesSql)
     sites = cursor.fetchall()
     cursor.close()
@@ -87,7 +81,7 @@ class TransList(object):
     @cherrypy.expose
     @require()
     def index(self, status=None, endpoint=None, page="1", dateFrom=None, dateTo=None, flagged=None, unreviewed=None, response=None, reason=None, origin=None):
-        conn = MySQLdb.connect(host=dbhost, port=dbport, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         page = int(page)
         
         now = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -170,7 +164,7 @@ class TransList(object):
         cursor.close()
         
         tmpl = lookup.get_template('translist.html')
-        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin)
+        return tmpl.render(rows=rows, status=status, endpoint=endpoint, username=getUsername(), page=page, max_page=max_page, now=now, dateFrom=dateFrom, dateTo=dateTo, flagged=flagged, unreviewed=unreviewed, response=response, reason=reason, origin=origin, sites=getSites())
 
     
 class TransView():
@@ -178,7 +172,7 @@ class TransView():
     @cherrypy.expose
     @require()
     def index(self, id, click=None):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor()
         
         if click=='flagged':
@@ -195,7 +189,7 @@ class TransView():
         return tmpl.render(row=row, username=getUsername(), max=max) 
     
     def toggleReviewed(self, id):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor()
         cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = " + id + ";")
         reviewed = cursor.fetchone()
@@ -207,7 +201,7 @@ class TransView():
         conn.commit()
         
     def toggleFlag(self, id):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor()
         cursor.execute("SELECT flagged FROM `transaction_log` WHERE id = " + id + ";")
         flagged = cursor.fetchone()
@@ -219,7 +213,7 @@ class TransView():
         conn.commit()
         
     def setRerun(self, id):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor()
         sql = "UPDATE transaction_log SET rerun = true WHERE id = " + id +";"
         cursor.execute(sql)
@@ -229,7 +223,7 @@ class TransView():
     @cherrypy.expose
     @require()
     def rerun(self,id):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor()
         response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = " + id + ";")
         row = cursor.fetchone()
@@ -254,7 +248,7 @@ class TransView():
         
 class Monitor(object):
     def calculateStats(self, extraWhereClause=""):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor ()
         stats = {}
         
@@ -330,7 +324,7 @@ class Reports(object):
     @cherrypy.expose
     @require()
     def index(self, dateFrom=None, dateTo=None, origin=None):
-        conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
+        conn = getMySQLConn()
         cursor = conn.cursor ()
 
         now = datetime.datetime.now().strftime('%Y-%m-%d')

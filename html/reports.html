@@ -18,37 +18,37 @@
 
 <script>
 	$(document).ready(function() {
+		$('#alert').hide();
 
 		//date validation
 		//from http://www.eyecon.ro/bootstrap-datepicker/
-		//TODO the validation doesn't work correctly yet
-		//var startDate = new Date('${now}');
-		//var endDate = new Date('${now}');
+		var startDate = new Date('${dateFrom}');
+		var endDate = new Date('${dateTo}');
 
 		$('#dateFromDiv').datepicker()
 			.on('changeDate', function(ev){
-				//if (ev.date.valueOf() > endDate.valueOf()){
-				//	$('#alert').show().find('strong').text('The start date can not be greater then the end date');
-				//	$('#refresh').hide();
-				//} else {
-				//	$('#alert').hide();
-				//	startDate = new Date(ev.date);
-				//	$('#startDate').text($('#dateFromDiv').data('date'));
-				//	$('#refresh').show();
-				//}
+				if (ev.date.valueOf() > endDate.valueOf()){
+					$('#alert').show().find('strong').text('The start date can not be greater than the end date');
+					$('#refresh').hide();
+				} else {
+					$('#alert').hide();
+					startDate = new Date(ev.date);
+					$('#refresh').show();
+					document.filter_form.submit();
+				}
 				$('#dateFromDiv').datepicker('hide');
 		});
 		$('#dateToDiv').datepicker()
 			.on('changeDate', function(ev){
-				//if (ev.date.valueOf() < startDate.valueOf()){
-				//	$('#alert').show().find('strong').text('The end date can not be less then the start date');
-				//	$('#refresh').hide();
-				//} else {
-				//	$('#alert').hide();
-				//	endDate = new Date(ev.date);
-				//	$('#endDate').text($('#dateToDiv').data('date'));
-				//	$('#refresh').show();
-				//}
+				if (ev.date.valueOf() < startDate.valueOf()){
+					$('#alert').show().find('strong').text('The end date can not be less than the start date');
+					$('#refresh').hide();
+				} else {
+					$('#alert').hide();
+					endDate = new Date(ev.date);
+					$('#refresh').show();
+					document.filter_form.submit();
+				}
 				$('#dateToDiv').datepicker('hide');
 		});
 	});
@@ -120,10 +120,10 @@ body {
 					<option>All</option>
 					% for site in sites: 
 						<option
-							% if origin == site[0]:
+							% if origin == site[1]:
 								selected="selected"
 							% endif					
-							value="${site[0]}">${site[0]}</option>
+							value="${site[1]}">${site[1]} (${site[0]})</option>
 					% endfor
 				</select>
 			</label>
@@ -141,6 +141,9 @@ body {
 			</label>
 			<a id="refresh" class="btn" onclick="document.filter_form.submit();" href="#"><i class="icon-refresh"></i></a>
 			<br/>
+			<div class="alert alert-error" id="alert">
+				<strong></strong>
+			</div>
 			</form>
 			
 			
