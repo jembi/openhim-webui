@@ -44,6 +44,8 @@ var registries = [
 	{ comp: "sub", desc: "Subscription Database" }
 ];
 
+var himRect, himText;
+
 var visW = 900, visH = 400;
 var pad = 20;
 
@@ -87,14 +89,34 @@ function setupRegistryComponent(compRect, compText, compConnector, index, text) 
 		.style("stroke", "#ddd");
 }
 
+
+var visualizerUpdate;
+
+function play() {
+	$("#play").hide();
+	$("#pause").show();
+
+	visualizerUpdate = setInterval( function() {
+		$.getJSON("state").done(function(data) {
+			himRect.transition().style("fill", "#555");
+		});
+	}, 1000);
+}
+
+function pause() {
+	$("#play").show();
+	$("#pause").hide();
+	clearInterval(visualizerUpdate);
+}
+
 $(function() {
 	var vis = d3.select("#visualizer")
 		.append("svg:svg")
 		.attr("width", visW)
 		.attr("height", visH);
 
-	var himRect = vis.append("svg:rect");
-	var himText = vis.append("svg:text");
+	himRect = vis.append("svg:rect");
+	himText = vis.append("svg:text");
 	setupBasicComponent(himRect, himText, himX, himY, himW, himH, "Health Information Mediator");
 
 	for (var i=0; i<registries.length; i++) {
@@ -104,10 +126,7 @@ $(function() {
 		setupRegistryComponent(registries[i].rect, registries[i].text, registries[i].line, i, registries[i].desc);
 	}
 
-	//setInterval( function() {
-	//	$.getJSON("state").done(function(data) {
-	//	});
-	//}, 100);
+	play();
 });
 </script>
 </head>
@@ -147,6 +166,14 @@ $(function() {
 	</div>
 
 	<div class="container">
+		<div id="controls" class="btn-toolbar">
+			<div class="btn-group">
+				<!--<a class="btn" href="#"><i class="icon-backward"></i></a>-->
+				<a id="play" class="btn" href="#" onclick="play();"><i class="icon-play"></i></a>
+				<a id="pause" class="btn" href="#" onclick="pause();"><i class="icon-pause"></i></a>
+				<!--<a class="btn" href="#"><i class="icon-forward"></i></a>-->
+			</div>
+		</div>
 		<div id="visualizer"/>
 	</div>
 	<!-- /container -->
