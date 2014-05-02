@@ -1,0 +1,9 @@
+{
+	"registries": [
+		{ "comp": "cr", "desc": "Client Registry" },
+		{ "comp": "dhis", "desc": "DHIS2" },
+		{ "comp": "sub", "desc": "Subscription Database" }
+	],
+	"activeColor": "#555",
+	"inactiveColor": "#ccc"
+}

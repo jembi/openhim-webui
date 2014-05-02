@@ -38,11 +38,10 @@ body {
 <!-- D3 -->
 <script src="../js/d3.min.js"></script>
 <script type="text/javascript">
-var registries = [
-	{ comp: "cr", desc: "Client Registry" },
-	{ comp: "dhis", desc: "DHIS2" },
-	{ comp: "sub", desc: "Subscription Database" }
-];
+<%!
+import json
+%>
+var registries = ${json.dumps(conf['registries'])};
 
 var himRect, himText;
 
@@ -54,8 +53,8 @@ var himX = 0 + pad,
 	himW = visW - 2.0*pad,
 	himH = visH/4.0 - 2.0*pad;
 
-var inactiveColor = "#ccc",
-	activeColor = "#555";
+var inactiveColor = "${conf['inactiveColor']}",
+	activeColor = "${conf['activeColor']}";
 
 var visualizerUpdateInterval;
 //How often to fetch updates from the server (in millis)

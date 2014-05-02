@@ -20,6 +20,7 @@ from ndg.httpsclient.https import HTTPSConnection
 from OpenSSL import SSL
 import socket
 from base64 import b64encode
+import json
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -490,7 +491,12 @@ class Visualizer(object):
     @require()
     def index(self):
         tmpl = lookup.get_template('visualizer.html')
-        return tmpl.render(username=getUsername())
+        conf = self.loadVisualizerConf()
+        return tmpl.render(username=getUsername(), conf=conf)
+
+    def loadVisualizerConf(self):
+        with open(current_dir + '/resources' + '/visualizer.json', 'r') as f:
+            return json.load(f)
 
 class About(object):
     

@@ -41,6 +41,7 @@ Note: you must have the OpenHIM setup and working for this web app to work. You 
     * Fill in ```database.cfg``` with the database details fo the OpenHIM
     * Fill in ```server.cfg``` with the details for how you would like this webserver to run
     * Fill in ```auth.cfg``` with authentication details for sending webservice request to the OpenHIM
+    * Edit ```visualizer.json``` in order to add new registries or change other settings for the Visualizer
 4. Navigate to ```openhim-webui/openhim-webui/```
 5. Run the web app using ```$python errorui.py```
   * On a server you can run the application in the background as follows: ```$nohup python errory.py &```
