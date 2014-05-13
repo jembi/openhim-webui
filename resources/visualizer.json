@@ -10,5 +10,7 @@
 		{ "comp": "ep-id", "desc": "/identification" }
 	],
 	"activeColor": "#555",
-	"inactiveColor": "#ccc"
+	"inactiveColor": "#ccc",
+	"errorColor": "#a55",
+	"errorDisplayTime": 1000
 }

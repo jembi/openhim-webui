@@ -22,6 +22,7 @@ from OpenSSL import SSL
 import socket
 from base64 import b64encode
 import json
+from visualizer import VisualizerService
 
 current_dir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 lookup = TemplateLookup(directories=[current_dir + '/html'], module_directory='/tmp/mako_modules', input_encoding='utf-8')
@@ -454,32 +455,23 @@ class Reports(object):
         return tmpl.render(sites=getSites(), username=getUsername(), rows=rows, dateFrom=dateFrom, dateTo=dateTo, origin=origin, report_num_days=report_num_days, now=now)
 
 class Visualizer(object):
+    def __init__(self):
+        self.service = VisualizerService()
+
     @cherrypy.expose
     @require()
     def sync(self):
-        return "{ \"time\": %d }" % int(round(time.time()*1000))
+        return self.service.getSyncTime()
 
     @cherrypy.expose
     @require()
     def latest(self, receivedTime):
-        return """[
-        { \"ts\": \"20140502130000000\", \"comp\": \"ep-reg\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000000\", \"comp\": \"him\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000100\", \"comp\": \"cr\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000300\", \"comp\": \"cr\", \"ev\": \"end\" },
-        { \"ts\": \"20140502130000400\", \"comp\": \"dhis\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000600\", \"comp\": \"dhis\", \"ev\": \"end\" },
-        { \"ts\": \"20140502130000700\", \"comp\": \"sub\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000900\", \"comp\": \"sub\", \"ev\": \"end\" },
-        { \"ts\": \"20140502130001000\", \"comp\": \"him\", \"ev\": \"end\" },
-        { \"ts\": \"20140502130001000\", \"comp\": \"ep-reg\", \"ev\": \"end\" }
-        ]
-        """
+        return self.service.getLatestEvents(receivedTime)
 
     @cherrypy.expose
     @require()
     def period(self, fromTime, toTime):
-        return "[]"
+        return self.service.getEventsByPeriod(fromTime, toTime)
 
     @cherrypy.expose
     @require()

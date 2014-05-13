@@ -55,7 +55,8 @@ var himX = 0 + pad,
 	himH = visH/4.0 - 2.0*pad;
 
 var inactiveColor = "${conf['inactiveColor']}",
-	activeColor = "${conf['activeColor']}";
+	activeColor = "${conf['activeColor']}",
+	errorColor = "${conf['errorColor']}";
 
 var visualizerUpdateInterval;
 //How often to fetch updates from the server (in millis)
@@ -172,9 +173,17 @@ function setupEndpoints(vis) {
 
 /* Animation */
 
-function animateComp(comp, ev, delay) {
-	var color = (ev.toLowerCase() === "start" ? activeColor : inactiveColor);
+function animateComp(comp, ev, delay, isError=false) {
+	var color;
 	var delayMultiplier = 1.0;
+
+	if (ev.toLowerCase() === "start") {
+		color = activeColor;
+	} else if (isError) {
+		color = errorColor;
+	} else {
+		color = inactiveColor;
+	}
 
 	if (speed<0) {
 		delayMultiplier = -1.0*speed + 1.0;
@@ -186,6 +195,37 @@ function animateComp(comp, ev, delay) {
 		.transition()
 		.delay(delay * delayMultiplier)
 		.style("fill", color);
+
+	if (isError) {
+		comp
+			.transition()
+			.delay(delay * delayMultiplier + ${conf['errorDisplayTime']})
+			.style("fill", inactiveColor);
+	}
+}
+
+function processEvents(data) {
+	if (data.length === 0) return;
+
+	var baseTime = data[0].ts;
+	var isErrorStatus = function(status) {
+		return typeof status !== "undefined" && status !== null && status.toLowerCase() === "error";
+	}
+
+	$.each(data, function(i, item) {
+		var comp = null;
+
+		comp = getRegistryRect(item.comp);
+		if (comp == null) {
+			comp = getEndpointText(item.comp);
+			if (typeof comp !== "undefined" && comp !== null) {
+				animateComp(comp, item.ev, item.ts-baseTime, isErrorStatus(item.status));
+				animateComp(himRect, item.ev, item.ts-baseTime, isErrorStatus(item.status));
+			}
+		} else {
+			animateComp(comp, item.ev, item.ts-baseTime, isErrorStatus(item.status));
+		}
+	});
 }
 
 function play() {
@@ -196,28 +236,9 @@ function play() {
 		$.getJSON(
 			"latest",
 			{ receivedTime: (Date.now()-diffTime) }
-		).done(function(data) {
-			if (data.length === 0) return;
-
-			var baseTime = data[0].ts;
-
-			$.each(data, function(i, item) {
-				var comp = null;
-
-				if (item.comp.toLowerCase() === "him") {
-					comp = himRect;
-				} else {
-					comp = getRegistryRect(item.comp);
-					if (comp == null) {
-						comp = getEndpointText(item.comp);
-					}
-				}
-
-				if (comp) {
-					animateComp(comp, item.ev, item.ts-baseTime);
-				}
-			});
-		}).fail(function(jqxhr, textStatus, error) {
+		).done(
+			processEvents
+		).fail(function(jqxhr, textStatus, error) {
 			console.error("Error: " + textStatus + " " + error);
 		});
 	}, updatePeriod);
