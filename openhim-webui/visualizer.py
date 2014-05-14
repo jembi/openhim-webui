@@ -32,14 +32,13 @@ class VisualizerService(object):
     def getLatestEvents(self, receivedTime):
         receivedBucket = self.currentTimeBucket()
         r = redis.StrictRedis(host=self.redisHost, port=self.redisPort, db=0)
-        result = "["
-        comma = ""
+        pipe = r.pipeline()
         for elem in r.zrange(receivedBase + str(receivedBucket), 0, -1):
             elemArr = elem.split(';')
             if elemArr[2] >= receivedTime:
-                result += comma + (r.get(redisBase + elemArr[0]))
-                comma = ","
-        return result + "]"
+                pipe.get(redisBase + elemArr[0])
+        results = pipe.execute()
+        return "[" + (",".join(results)) + "]"
 
     def getEventsByPeriod(self, fromTime, toTime):
         """
