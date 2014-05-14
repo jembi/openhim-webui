@@ -64,16 +64,18 @@ class VisualizerService(object):
         curTime = currentTimeMillis()
         receivedBucket = self.currentTimeBucket(curTime)
 
+        pipe = r.pipeline()
         for event in events['events']:
             eventID = r.incr(redisBase + "id")
             eventDate = parseEventDate(event['ts'])
             eventBucket = eventDate/(self.bucketSizeSeconds*1000)
             eventMetaElement = "%s;%s;%s" % (eventID, eventDate, curTime)
 
-            r.set(redisBase + str(eventID), json.dumps(event))
-            r.zadd(receivedBase + str(receivedBucket), eventDate, eventMetaElement)
-            r.zadd(eventsBase + str(eventBucket), eventDate, eventMetaElement)
-            r.expire(redisBase + str(eventID), self.expireSeconds)
-            r.expire(eventsBase + str(eventBucket), self.expireSeconds)
+            pipe.set(redisBase + str(eventID), json.dumps(event))
+            pipe.zadd(receivedBase + str(receivedBucket), eventDate, eventMetaElement)
+            pipe.zadd(eventsBase + str(eventBucket), eventDate, eventMetaElement)
+            pipe.expire(redisBase + str(eventID), self.expireSeconds)
+            pipe.expire(eventsBase + str(eventBucket), self.expireSeconds)
 
-        r.expire(receivedBase + str(receivedBucket), self.bucketSizeSeconds)
+        pipe.expire(receivedBase + str(receivedBucket), self.bucketSizeSeconds)
+        pipe.execute()
