@@ -1,22 +1,79 @@
 import time
+from datetime import datetime
+import redis
+import json
+
+redisBase = 'openhim:webui:'
+receivedBase = redisBase + 'received:'
+eventsBase = redisBase + 'events:'
+
+def currentTimeMillis():
+    return int(round(time.time()*1000))
+
+def parseEventDate(dateTime):
+    d = datetime.strptime(dateTime, '%Y%m%d%H%M%S%f')
+    return int(time.mktime(d.timetuple()) * 1000 + d.microsecond / 1000)
 
 class VisualizerService(object):
+    def __init__(self, bucketSizeSeconds=60, expireSeconds=600, redisHost='localhost', redisPort=6379):
+        self.bucketSizeSeconds = bucketSizeSeconds
+        self.expireSeconds = expireSeconds
+        self.redisHost = redisHost
+        self.redisPort = redisPort
+
     def getSyncTime(self):
         """Used by clients to sync their requests with the server time"""
-        return "{ \"time\": %d }" % int(round(time.time()*1000))
+        return "{ \"time\": %d }" % currentTimeMillis()
+
+    def currentTimeBucket(self, currentTime=None):
+        if not currentTime: currentTime = currentTimeMillis()
+        return currentTime/(self.bucketSizeSeconds*1000)
 
     def getLatestEvents(self, receivedTime):
-        return """[
-        { \"ts\": \"20140502130000000\", \"comp\": \"ep-reg\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000100\", \"comp\": \"cr\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000300\", \"comp\": \"cr\", \"ev\": \"end\", \"status\": \"ok\" },
-        { \"ts\": \"20140502130000400\", \"comp\": \"dhis\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000600\", \"comp\": \"dhis\", \"ev\": \"end\", \"status\": \"ok\" },
-        { \"ts\": \"20140502130000700\", \"comp\": \"sub\", \"ev\": \"start\" },
-        { \"ts\": \"20140502130000900\", \"comp\": \"sub\", \"ev\": \"end\", \"status\": \"error\" },
-        { \"ts\": \"20140502130001000\", \"comp\": \"ep-reg\", \"ev\": \"end\", \"status\": \"error\" }
-        ]
-        """
+        receivedBucket = self.currentTimeBucket()
+        r = redis.StrictRedis(host=self.redisHost, port=self.redisPort, db=0)
+        result = "["
+        comma = ""
+        for elem in r.zrange(receivedBase + str(receivedBucket), 0, -1):
+            elemArr = elem.split(';')
+            if elemArr[2] >= receivedTime:
+                result += comma + (r.get(redisBase + elemArr[0]))
+                comma = ","
+        return result + "]"
 
     def getEventsByPeriod(self, fromTime, toTime):
+        """
+        TODO
+        Get events for a particular time period. This is used for playing back older events.
+        """
         return "[]"
+
+    def saveEvents(self, events):
+        """
+        Add new events. Expects an json parsed object for the following format:
+        {
+            events: [
+                { ts: yyyyMMddHHmmssSSS, comp: component, ev: start|end, status: ok|error }
+            ]
+        }
+        The status field is optional, and is really only relevant to 'end' events.
+
+        Received events will be stored in Redis bucketed in x seconds slots based on received time and event time.
+        """
+        r = redis.StrictRedis(host=self.redisHost, port=self.redisPort, db=0)
+        curTime = currentTimeMillis()
+        receivedBucket = self.currentTimeBucket(curTime)
+
+        for event in events['events']:
+            eventID = r.incr(redisBase + "id")
+            eventDate = parseEventDate(event['ts'])
+            eventBucket = eventDate/(self.bucketSizeSeconds*1000)
+            eventMetaElement = "%s;%s;%s" % (eventID, eventDate, curTime)
+
+            r.set(redisBase + str(eventID), json.dumps(event))
+            r.zadd(receivedBase + str(receivedBucket), eventDate, eventMetaElement)
+            r.zadd(eventsBase + str(eventBucket), eventDate, eventMetaElement)
+            r.expire(redisBase + str(eventID), self.expireSeconds)
+            r.expire(eventsBase + str(eventBucket), self.expireSeconds)
+
+        r.expire(receivedBase + str(receivedBucket), self.bucketSizeSeconds)

@@ -16,7 +16,7 @@ Dependencies
 
 The application's dependencies can be installed using [pip](https://pypi.python.org/pypi/pip) as follows:
 ```
-$pip install cherrypy mysql-python mako ndg-httpsclient
+$pip install cherrypy mysql-python mako ndg-httpsclient redis
 ```
 
 Alternatively [virtualenv](http://www.virtualenv.org/en/latest/) can be used in order to create an isolated environment (ideal for development):

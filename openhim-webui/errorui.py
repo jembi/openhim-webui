@@ -474,6 +474,11 @@ class Visualizer(object):
         return self.service.getEventsByPeriod(fromTime, toTime)
 
     @cherrypy.expose
+    @cherrypy.tools.json_in()
+    def events(self):
+        return self.service.saveEvents(cherrypy.request.json)
+
+    @cherrypy.expose
     @require()
     def index(self):
         tmpl = lookup.get_template('visualizer.html')
