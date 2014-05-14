@@ -55,15 +55,16 @@ The WebUI has a Visualizer for illustrating the HIE architecture. It can receive
 The Visualizer requires [Redis](http://redis.io/) to be installed:
 
 1. Install Redis
+  * See the following guide as an example: http://grainier.net/how-to-install-redis-in-ubuntu/
 2. Install the redis.py module: ```$pip install redis```
 3. (Optionally) Install the hiredis module, which will offer a huge speed improvement: ```$pip install hiredis```
 
 The Visualizer configuration is setup in ```resources/visualizer.json```:
 
 * `registries` contains a list of the registries in the HIE. The `comp` field contains the event keyword for that registry, while the description will be displayed on the HIE diagram.
-* `endpoints` like registries contains the possible endpoints for the HIM.
+* `endpoints`, like registries, contains the possible endpoints for the HIM.
 
-Events can be sent as POST requests to the path */visualizer/events* with the following JSON: 
+Events can be sent as POST requests to the path **/visualizer/events** with the following JSON: 
 ```
 {
 	events: [
@@ -87,4 +88,4 @@ An example of a sequence of events for a transaction could be as follows:
 	]
 }
 ```
-This example illustrates a transaction on the `Save Encounter` endpoint where the `Facility Registry` transaction failed.
+This example illustrates a transaction on the *Save Encounter* endpoint where the *Facility Registry* transaction failed.
