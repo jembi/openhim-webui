@@ -456,7 +456,8 @@ class Reports(object):
 
 class Visualizer(object):
     def __init__(self):
-        self.service = VisualizerService()
+        conf = self.loadVisualizerConf()
+        self.service = VisualizerService(redisHost=conf['redis']['host'], redisPort=conf['redis']['port'])
 
     @cherrypy.expose
     @require()
