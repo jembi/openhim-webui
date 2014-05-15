@@ -49,7 +49,7 @@ class VisualizerService(object):
 
     def saveEvents(self, events):
         """
-        Add new events. Expects an json parsed object for the following format:
+        Add new events. Expects a json parsed object for the following format:
         {
             events: [
                 { ts: yyyyMMddHHmmssSSS, comp: component, ev: start|end, status: ok|error }
