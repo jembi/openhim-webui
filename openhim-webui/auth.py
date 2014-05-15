@@ -148,7 +148,7 @@ class AuthController(object):
     def getUsernameEntry(self, username):
         conn = MySQLdb.connect(host=self.dbhost, user=self.dbuser, passwd=self.dbpasswd, db=self.dbname)
         with closing(conn.cursor()) as cursor:
-            cursor.execute("SELECT * FROM `users` WHERE username = %s", (username))
+            cursor.execute("SELECT * FROM `users` WHERE username = '{0}'".format(username))
             row = cursor.fetchone()
         conn.close()
         return row
