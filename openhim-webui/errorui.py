@@ -4,16 +4,17 @@
 '''
 Created on 25 Apr 2012
 
-@author: ryan
+@author: ryan and hacked by pierre
 '''
 import cherrypy
 import os.path
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
+import psycopg2
 from auth import AuthController, require, member_of, name_is, SESSION_KEY
 import datetime
-import re
+import re 
 import ConfigParser
 from ndg.httpsclient.https import HTTPSConnection
 from OpenSSL import SSL
@@ -319,13 +320,33 @@ class About(object):
     def index(self):
         tmpl = lookup.get_template('about.html')
         return tmpl.render(username=getUsername())
-    
+
+class MMH(object):
+    @cherrypy.expose
+    @require()
+    def index(self):
+        conn = psycopg2.connect("dbname=openempi user=openempi port=5432 host=54.80.72.60 password=openempi")
+        cur = conn.cursor()
+        cur.execute("select person.person_id, identifier, person.date_created from person inner join person_identifier on person.person_id = person_identifier.person_id where identifier_domain_id = 1002 order by person.person_id desc")
+        rows = cur.fetchall()
+        cur.close()        
+        tmpl = lookup.get_template('mmh.html')
+        return tmpl.render(rows=rows, username=getUsername())     
+
+class Graph(object):
+    @cherrypy.expose
+    @require()
+    def index(self):
+        tmpl = lookup.get_template('graph.html')
+        return tmpl.render(username=getUsername())
     
 class Root(object):
+    MMH = MMH()
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
     about = About()
+    graph = Graph()
     auth = AuthController(lookup.get_template('login.html'), dbhost, dbuser, dbpasswd, dbname)
     
     @cherrypy.expose
