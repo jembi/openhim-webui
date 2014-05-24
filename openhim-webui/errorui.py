@@ -177,7 +177,7 @@ class TransView():
                 
             cursor.execute("SELECT MAX(id) FROM `transaction_log`;")
             max = cursor.fetchone()
-            cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = %s", (id))
+            cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = %s", (id,))
             row = cursor.fetchone()
         conn.close()
 
@@ -194,12 +194,12 @@ class TransView():
     def toggleReviewed(self, id):
         conn = getMySQLConn()
         with closing(conn.cursor()) as cursor:
-            cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = %s", (id))
+            cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = %s", (id,))
             reviewed = cursor.fetchone()
             if reviewed[0] == 1:
-                cursor.execute("UPDATE transaction_log SET reviewed = 0 WHERE id = %s", (id)) 
+                cursor.execute("UPDATE transaction_log SET reviewed = 0 WHERE id = %s", (id,)) 
             else:
-                cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = %s", (id))
+                cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = %s", (id,))
         conn.commit()
         conn.close()
         
@@ -313,6 +313,12 @@ class Monitor(object):
         return tmpl.render(totalStats=totalStats, stats=stats, username=getUsername(), monitoring_num_days=monitoring_num_days) 
 
 
+class Graph(object):
+    @cherrypy.expose
+    @require()
+    def index(self):
+        tmpl = lookup.get_template('graph.html')
+        return tmpl.render(username=getUsername())
 
 class Reports(object):
 
@@ -338,7 +344,7 @@ class Reports(object):
                     "cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c "
                     ") a WHERE a.date >= '%s' "
                     "AND a.date <= '%s'"
-                    ) % (dateFrom, dateFrom, dateTo)
+                    ) % (dateFrom, dateFrom, dateTo,)
 
 
             if origin is not None and origin != "All" and origin != "all" and intPattern.match(origin):
@@ -353,7 +359,7 @@ class Reports(object):
                     "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
                     ") "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo, origin, origin, origin)
+                ) % (dateFrom, dateTo, origin, origin, origin,)
                 sqlhimsuccess = (
                     "SELECT COUNT(id) as him_success_value, DATE(tl.recieved_timestamp) as date "
                     "FROM transaction_log tl "
@@ -366,7 +372,7 @@ class Reports(object):
                     "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
                     ") "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo, origin, origin, origin)
+                ) % (dateFrom, dateTo, origin, origin, origin,)
                 sqlhimnosuccess = (
                     "SELECT COUNT(id) as him_no_success_value, DATE(tl.recieved_timestamp) as date "
                     "FROM transaction_log tl "
@@ -379,7 +385,7 @@ class Reports(object):
                     "body RLIKE '.*<CX\.5>OMRS%s</CX\.5>.*' "
                     ") "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo, origin, origin, origin)
+                ) % (dateFrom, dateTo, origin, origin, origin,)
                 sqlpoc = (
                     "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_sent_value, r.report_date as date "
                     "FROM data_element de, indicator i, report r, sites s "
@@ -390,7 +396,7 @@ class Reports(object):
                     "AND i.report_id = r.id "
                     "AND r.site = s.id AND s.implementation_id = '%s' "
                     "GROUP BY r.report_date "
-                ) % (dateFrom, dateTo, origin)
+                ) % (dateFrom, dateTo, origin,)
             else:
                 sqlhim = (
                     "SELECT COUNT(id) as him_received_value, DATE(tl.recieved_timestamp) as date "
@@ -398,7 +404,7 @@ class Reports(object):
                     "WHERE DATE(tl.recieved_timestamp) >= '%s' "
                     "AND DATE(tl.recieved_timestamp) <= '%s' "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo)
+                ) % (dateFrom, dateTo,)
                 sqlhimsuccess = (
                     "SELECT COUNT(id) as him_success_value, DATE(tl.recieved_timestamp) as date "
                     "FROM transaction_log tl "
@@ -406,7 +412,7 @@ class Reports(object):
                     "AND DATE(tl.recieved_timestamp) <= '%s' "
                     "AND status = 2 "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo)
+                ) % (dateFrom, dateTo,)
                 sqlhimnosuccess = (
                     "SELECT COUNT(id) as him_no_success_value, DATE(tl.recieved_timestamp) as date "
                     "FROM transaction_log tl "
@@ -414,7 +420,7 @@ class Reports(object):
                     "AND DATE(tl.recieved_timestamp) <= '%s' "
                     "AND status != 2 "
                     "GROUP BY DATE(tl.recieved_timestamp) "
-                ) % (dateFrom, dateTo)
+                ) % (dateFrom, dateTo,)
                 sqlpoc = (
                     "SELECT de.name as data_element, CAST(SUM(de.value) AS UNSIGNED) as poc_sent_value, r.report_date as date "
                     "FROM data_element de, indicator i, report r "
@@ -424,7 +430,7 @@ class Reports(object):
                     "AND de.indicator_id = i.id "
                     "AND i.report_id = r.id "
                     "GROUP BY r.report_date "
-                ) % (dateFrom, dateTo)
+                ) % (dateFrom, dateTo,)
             
             sql = ("SELECT dates.date as date, data_element, IFNULL(poc_sent_value,0), IFNULL(him_received_value,0), "
                 "IFNULL((poc_sent_value - him_received_value),0) as him_not_received_value, "
@@ -441,7 +447,7 @@ class Reports(object):
                 "LEFT JOIN "
                 "( %s ) as poc on him.date = poc.date "
                 "ORDER BY dates.date ASC;"
-                ) % (sqldates, sqlhim, sqlhimsuccess, sqlhimnosuccess, sqlpoc)
+                ) % (sqldates, sqlhim, sqlhimsuccess, sqlhimnosuccess, sqlpoc,)
 
             print(sql)
             
@@ -500,6 +506,7 @@ class About(object):
     
     
 class Root(object):
+    graph = Graph();
     translist = TransList()
     transview = TransView()
     monitor = Monitor()
