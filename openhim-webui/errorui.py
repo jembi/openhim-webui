@@ -174,7 +174,7 @@ class TransView():
                 
             cursor.execute("SELECT MAX(id) FROM `transaction_log`;")
             max = cursor.fetchone()
-            cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = %s", (id))
+            cursor.execute("SELECT id, uuid, path, request_params, body, http_method, resp_status, resp_body, recieved_timestamp, responded_timestamp, authorized_username, error_description, error_stacktrace, status, flagged, reviewed, rerun FROM `transaction_log` WHERE id = %s", (id,))
             row = cursor.fetchone()
         conn.close()
 
@@ -191,31 +191,31 @@ class TransView():
     def toggleReviewed(self, id):
         conn = getMySQLConn()
         with closing(conn.cursor()) as cursor:
-            cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = %s", (id))
+            cursor.execute("SELECT reviewed FROM `transaction_log` WHERE id = %s", (id,))
             reviewed = cursor.fetchone()
             if reviewed[0] == 1:
-                cursor.execute("UPDATE transaction_log SET reviewed = 0 WHERE id = %s", (id)) 
+                cursor.execute("UPDATE transaction_log SET reviewed = 0 WHERE id = %s", (id,)) 
             else:
-                cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = %s", (id))
+                cursor.execute("UPDATE transaction_log SET reviewed = 1 WHERE id = %s", (id,))
         conn.commit()
         conn.close()
         
     def toggleFlag(self, id):
         conn = getMySQLConn()
         with closing(conn.cursor()) as cursor:
-            cursor.execute("SELECT flagged FROM `transaction_log` WHERE id = %s", (id))
+            cursor.execute("SELECT flagged FROM `transaction_log` WHERE id = %s", (id,))
             flagged = cursor.fetchone()
             if flagged[0] == 1:
-                cursor.execute("UPDATE transaction_log SET flagged = 0 WHERE id = %s", (id))
+                cursor.execute("UPDATE transaction_log SET flagged = 0 WHERE id = %s", (id,))
             else:
-                cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = %s", (id))
+                cursor.execute("UPDATE transaction_log SET flagged = 1 WHERE id = %s", (id,))
         conn.commit()
         conn.close()
         
     def setRerun(self, id):
         conn = getMySQLConn()
         with closing(conn.cursor()) as cursor:
-            cursor.execute("UPDATE transaction_log SET rerun = true WHERE id = %s", (id))
+            cursor.execute("UPDATE transaction_log SET rerun = true WHERE id = %s", (id,))
         conn.commit();
         conn.close()
     
@@ -224,7 +224,7 @@ class TransView():
     def rerun(self,id):
         conn = getMySQLConn()
         with closing(conn.cursor()) as cursor:
-            response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = %s", (id))
+            response = cursor.execute("SELECT path, http_method, request_params, body, rerun FROM transaction_log WHERE id = %s", (id,))
             row = cursor.fetchone()
         conn.close()
         
