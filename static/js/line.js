@@ -2,7 +2,7 @@
   });e lines are all chart setup.  Pick and choose which chart features you want to utilize. */
 
 function reloadGraph(){
- $.get( "http://54.196.47.226:3784/instrumentation/getCounters?c=metrics5", function( data ) {
+ $.get( "http://localhost:3784/instrumentation/getCounters?c=metrics5", function( data ) {
     //$( ".result" ).html( data );
 //    alert( "Load was performed." );
  
