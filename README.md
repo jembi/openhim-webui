@@ -89,3 +89,9 @@ An example of a sequence of events for a transaction could be as follows:
 }
 ```
 This example illustrates a transaction on the *Save Encounter* endpoint where the *Facility Registry* transaction failed.
+
+Metrics
+-------
+The WebUI can display several metrics graphs based on data received from the Metrics Service available at: https://github.com/jembi/openhim-metrics
+
+The metrics depend on MongoDB and can be utilized by posting metrics stats to the metrics service.
