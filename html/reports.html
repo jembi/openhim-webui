@@ -88,7 +88,9 @@ body {
 				<ul class="nav">
 					<li><a href="../translist">Transaction Log</a></li>
 					<li><a href="../monitor">Monitor</a></li>
+					<li><a href="../visualizer">Visualizer</a></li>
 					<li class="active"><a href="../reports">Reports</a></li>
+					<li><a href="../graph">Graph</a></li>
 					<li><a href="../about">About</a></li>
 				</ul>
 				<ul class="nav pull-right">
@@ -122,7 +124,7 @@ body {
 							% if origin == site[1]:
 								selected="selected"
 							% endif					
-							value="${site[1]}">${site[1]} (${site[0]})</option>
+							value="${site[0]}">${site[1]} (${site[0]})</option>
 					% endfor
 				</select>
 			</label>

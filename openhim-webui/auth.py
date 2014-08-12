@@ -16,38 +16,23 @@
 
 import cherrypy
 import MySQLdb
+from contextlib import closing
 import hashlib
 
 SESSION_KEY = '_cp_username'
+USER_FILTERS = '_user_filters'
 
-def check_credentials(username, password, dbhost, dbuser, dbpasswd, dbname):
-    """Verifies credentials for username and password.
-    Returns None on success or a string describing the error on failure"""
-    # Adapt to your needs
-    conn = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpasswd, db=dbname)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM `users` WHERE username = '" + username + "';")
-    row = cursor.fetchone()
-    cursor.close()
-    
-    if row is None:
-        return u"The username or password you entered is incorrect."
-    
-    username = row[1]
-    hash = row[2]
-    salt = row[3]
-    
-    if hash == hashlib.md5(salt + username + password).hexdigest():
-        return None
-    else:
-        return u"The username or password you entered is incorrect."
-    
-    # An example implementation which uses an ORM could be:
-    # u = User.get(username)
-    # if u is None:
-    #     return u"Username %s is unknown to me." % username
-    # if u.password != md5.new(password).hexdigest():
-    #     return u"Incorrect password"
+
+class UserFilters(object):
+    def __init__(self, endpoint=None):
+        self.endpoint = endpoint
+
+    def hasEndpointFilter(self):
+        return self.endpoint is not None
+
+    def getEndpointFilter(self):
+        return self.endpoint
+
 
 def check_auth(*args, **kwargs):
     """A tool that looks in config for 'auth.require'. If found and it
@@ -144,14 +129,30 @@ class AuthController(object):
         if username is None or password is None:
             return self.get_loginform("", from_page=from_page)
         
-        error_msg = check_credentials(username, password, self.dbhost, self.dbuser, self.dbpasswd, self.dbname)
-        if error_msg:
-            return self.get_loginform(username, error_msg, from_page)
-        else:
-            cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
-            self.on_login(username)
-            raise cherrypy.HTTPRedirect(from_page or "../translist")
-    
+        row = self.getUsernameEntry(username)
+        if row is None:
+            return self.get_loginform(username, u"The username or password you entered is incorrect.", from_page)
+        
+        hash = row[2]
+        salt = row[3]
+        viewfilter_endpoint = row[4]
+        
+        if hash != hashlib.md5(salt + username + password).hexdigest():
+            return self.get_loginform(username, u"The username or password you entered is incorrect.", from_page)
+
+        cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
+        cherrypy.session[USER_FILTERS] = UserFilters(viewfilter_endpoint)
+        self.on_login(username)
+        raise cherrypy.HTTPRedirect(from_page or "../translist")
+
+    def getUsernameEntry(self, username):
+        conn = MySQLdb.connect(host=self.dbhost, user=self.dbuser, passwd=self.dbpasswd, db=self.dbname)
+        with closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT * FROM `users` WHERE username = %s", (username,))
+            row = cursor.fetchone()
+        conn.close()
+        return row
+
     @cherrypy.expose
     def logout(self, from_page="/"):
         sess = cherrypy.session

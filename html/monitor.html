@@ -48,7 +48,9 @@ body {
 				<ul class="nav">
 					<li><a href="../translist">Transaction Log</a></li>
 					<li class="active"><a href="../monitor">Monitor</a></li>
+					<li><a href="../visualizer">Visualizer</a></li>
 					<li><a href="../reports">Reports</a></li>
+					<li><a href="../graph">Graph</a></li>
 					<li><a href="../about">About</a></li>
 				</ul>
 				<ul class="nav pull-right">
@@ -90,92 +92,22 @@ body {
 				</tr>
 			</thead>
 			<tbody>
+				% for stat in stats:
 				<tr>
-					<td>Save Patient Encounter</td>
-					<td>${"%.2f" % (saveEncStats["avg"]) if saveEncStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (saveEncStats["max"]) if saveEncStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (saveEncStats["min"]) if saveEncStats["min"] is not None else ''}s</td>
-					<td>${saveEncStats["processing"]}</td>
-					<td>${saveEncStats["completed"]}</td>
-					<td>${saveEncStats["error"]}</td>
+					<td>${stat['description']}</td>
+					<td>${"%.2fs" % (stat["avg"]) if stat["avg"] is not None else '0'}</td>
+					<td>${"%.2fs" % (stat["max"]) if stat["max"] is not None else '0'}</td>
+					<td>${"%.2fs" % (stat["min"]) if stat["min"] is not None else '0'}</td>
+					<td>${stat["processing"]}</td>
+					<td>${stat["completed"]}</td>
+					<td>${stat["error"]}</td>
 				</tr>
-				<tr>
-					<td>Query for previous patient encounters</td>
-					<td>${"%.2f" % (queryEncStats["avg"]) if queryEncStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryEncStats["max"]) if queryEncStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryEncStats["min"]) if queryEncStats["min"] is not None else ''}s</td>
-					<td>${queryEncStats["processing"]}</td>
-					<td>${queryEncStats["completed"]}</td>
-					<td>${queryEncStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Register new client</td>
-					<td>${"%.2f" % (regClientStats["avg"]) if regClientStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (regClientStats["max"]) if regClientStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (regClientStats["min"]) if regClientStats["min"] is not None else ''}s</td>
-					<td>${regClientStats["processing"]}</td>
-					<td>${regClientStats["completed"]}</td>
-					<td>${regClientStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Query for clients</td>
-					<td>${"%.2f" % (queryClientStats["avg"]) if queryClientStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryClientStats["max"]) if queryClientStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryClientStats["min"]) if queryClientStats["min"] is not None else ''}s</td>
-					<td>${queryClientStats["processing"]}</td>
-					<td>${queryClientStats["completed"]}</td>
-					<td>${queryClientStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Get client</td>
-					<td>${"%.2f" % (getClientStats["avg"]) if getClientStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (getClientStats["max"]) if getClientStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (getClientStats["min"]) if getClientStats["min"] is not None else ''}s</td>
-					<td>${getClientStats["processing"]}</td>
-					<td>${getClientStats["completed"]}</td>
-					<td>${getClientStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Update client record</td>
-					<td>${"%.2f" % (updateClientStats["avg"]) if updateClientStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (updateClientStats["max"]) if updateClientStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (updateClientStats["min"]) if updateClientStats["min"] is not None else ''}s</td>
-					<td>${updateClientStats["processing"]}</td>
-					<td>${updateClientStats["completed"]}</td>
-					<td>${updateClientStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Query for HC Facilities</td>
-					<td>${"%.2f" % (queryFacStats["avg"]) if queryFacStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryFacStats["max"]) if queryFacStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (queryFacStats["min"]) if queryFacStats["min"] is not None else ''}s</td>
-					<td>${queryFacStats["processing"]}</td>
-					<td>${queryFacStats["completed"]}</td>
-					<td>${queryFacStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Get HC Facility</td>
-					<td>${"%.2f" % (getFacStats["avg"]) if getFacStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (getFacStats["max"]) if getFacStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (getFacStats["min"]) if getFacStats["min"] is not None else ''}s</td>
-					<td>${getFacStats["processing"]}</td>
-					<td>${getFacStats["completed"]}</td>
-					<td>${getFacStats["error"]}</td>
-				</tr>
-				<tr>
-					<td>Post Alert</td>
-					<td>${"%.2f" % (alertStats["avg"]) if alertStats["avg"] is not None else ''}s</td>
-					<td>${"%.2f" % (alertStats["max"]) if alertStats["max"] is not None else ''}s</td>
-					<td>${"%.2f" % (alertStats["min"]) if alertStats["min"] is not None else ''}s</td>
-					<td>${alertStats["processing"]}</td>
-					<td>${alertStats["completed"]}</td>
-					<td>${alertStats["error"]}</td>
-				</tr>
+				% endfor
 				<tr>
 					<td><b>TOTAL</b></td>
-					<td><b>${"%.2f" % (totalStats["avg"]) if totalStats["avg"] is not None else ''}s</b></td>
-					<td><b>${"%.2f" % (totalStats["max"]) if totalStats["max"] is not None else ''}s</b></td>
-					<td><b>${"%.2f" % (totalStats["min"]) if totalStats["min"] is not None else ''}s</b></td>
+					<td><b>${"%.2fs" % (totalStats["avg"]) if totalStats["avg"] is not None else '0'}</b></td>
+					<td><b>${"%.2fs" % (totalStats["max"]) if totalStats["max"] is not None else '0'}</b></td>
+					<td><b>${"%.2fs" % (totalStats["min"]) if totalStats["min"] is not None else '0'}</b></td>
 					<td><b>${totalStats["processing"]}</b></td>
 					<td><b>${totalStats["completed"]}</b></td>
 					<td><b>${totalStats["error"]}</b></td>

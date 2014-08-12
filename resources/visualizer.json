@@ -1,0 +1,20 @@
+{
+	"registries": [
+		{ "comp": "cr", "desc": "Client Registry" },
+		{ "comp": "dhis", "desc": "DHIS2" },
+		{ "comp": "sub", "desc": "Subscription Database" }
+	],
+	"endpoints": [
+		{ "comp": "ep-reg", "desc": "/registration" },
+		{ "comp": "ep-sub", "desc": "/subscription" },
+		{ "comp": "ep-id", "desc": "/identification" }
+	],
+	"activeColor": "#555",
+	"inactiveColor": "#ccc",
+	"errorColor": "#a55",
+	"errorDisplayTime": 1000,
+	"redis": {
+		"host": "localhost",
+		"port": 6379
+	}
+}
