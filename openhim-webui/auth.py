@@ -22,6 +22,8 @@ import hashlib
 SESSION_KEY = '_cp_username'
 USER_FILTERS = '_user_filters'
 
+def secure_path(path=''):
+    return cherrypy.request.base.replace('http:', 'https:') + path
 
 class UserFilters(object):
     def __init__(self, endpoint=None):
@@ -46,9 +48,9 @@ def check_auth(*args, **kwargs):
             for condition in conditions:
                 # A condition is just a callable that returns true or false
                 if not condition():
-                    raise cherrypy.HTTPRedirect("/auth/login")
+                    raise cherrypy.HTTPRedirect(secure_path("/auth/login"))
         else:
-            raise cherrypy.HTTPRedirect("/auth/login")
+            raise cherrypy.HTTPRedirect(secure_path("/auth/login"))
     
 cherrypy.tools.auth = cherrypy.Tool('before_handler', check_auth)
 
@@ -143,7 +145,7 @@ class AuthController(object):
         cherrypy.session[SESSION_KEY] = cherrypy.request.login = username
         cherrypy.session[USER_FILTERS] = UserFilters(viewfilter_endpoint)
         self.on_login(username)
-        raise cherrypy.HTTPRedirect(from_page or "../translist")
+        raise cherrypy.HTTPRedirect(from_page or secure_path("/translist"))
 
     def getUsernameEntry(self, username):
         conn = MySQLdb.connect(host=self.dbhost, user=self.dbuser, passwd=self.dbpasswd, db=self.dbname)
@@ -161,4 +163,4 @@ class AuthController(object):
         if username:
             cherrypy.request.login = None
             self.on_logout(username)
-        raise cherrypy.HTTPRedirect(from_page or "/")
+        raise cherrypy.HTTPRedirect(from_page or secure_path())

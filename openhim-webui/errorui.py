@@ -12,7 +12,7 @@ from mako.template import Template
 from mako.lookup import TemplateLookup
 import MySQLdb
 from contextlib import closing
-from auth import AuthController, require, member_of, name_is, SESSION_KEY, USER_FILTERS
+from auth import AuthController, require, member_of, name_is, SESSION_KEY, USER_FILTERS, secure_path
 import datetime
 import time
 import re
@@ -58,6 +58,9 @@ password = config.get('Authentication Details', 'password')
 config.read(current_dir + '/resources' + '/server.cfg')
 servhost = config.get('Server Parameters', 'host')
 servport = int(config.get('Server Parameters', 'port'))
+servsecureport = int(config.get('Server Parameters', 'secure_port'))
+servsecurecert = config.get('Server Parameters', 'secure_cert')
+servsecurekey = config.get('Server Parameters', 'secure_key')
 
 monitoring_num_days = 7
 translist_num_days = 7
@@ -517,17 +520,24 @@ class Root(object):
     
     @cherrypy.expose
     def index(self):
-        raise cherrypy.HTTPRedirect("auth/login")
-    
+        raise cherrypy.HTTPRedirect(secure_path("/auth/login"))
+ 
+
+def check_ssl(self=None):
+    if cherrypy.request.scheme == 'http':
+        raise cherrypy.HTTPRedirect(cherrypy.url().replace('http:', 'https:'))
+
+
 def main():
     """This is the main function that can be called to start the
     CherryPy server and launch the web app"""
+
+    cherrypy.tools.check_ssl = cherrypy.Tool('before_handler', check_ssl)
     
     # Config server
-    cherrypy.config.update({'server.socket_host': servhost,
-                            'server.socket_port': servport,
-                            'tools.sessions.on': True,
-                            'tools.auth.on': True
+    cherrypy.config.update({'tools.sessions.on': True,
+                            'tools.auth.on': True,
+                            'tools.check_ssl.on': True
                           })
     
     # Setup static resources
@@ -539,7 +549,26 @@ def main():
           '/less': {'tools.staticdir.on': True, 'tools.staticdir.dir': 'less'}
           }
 
-    cherrypy.quickstart(Root(), '/', appConfig)
+    cherrypy.tree.mount(Root(), '/', appConfig)
+    cherrypy.server.unsubscribe()
+
+    https_server = cherrypy._cpserver.Server()
+    https_server.socket_port=servsecureport
+    https_server._socket_host=servhost
+    https_server.thread_pool=30
+    https_server.ssl_module = 'pyopenssl'
+    https_server.ssl_certificate = servsecurecert
+    https_server.ssl_private_key = servsecurekey
+    https_server.subscribe()
+
+    http_server = cherrypy._cpserver.Server()
+    http_server.socket_port=servport
+    http_server._socket_host=servhost
+    http_server.thread_pool=30
+    http_server.subscribe()
+
+    cherrypy.engine.start()
+    cherrypy.engine.block()
  
 
 if __name__ == "__main__":
